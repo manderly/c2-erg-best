@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import { getUpcomingChallenges } from './services/api.ts';
+import '@mantine/core/styles.css';
+import { MantineProvider } from '@mantine/core';
 
 type UpcomingChallenges = {
   data: object[];
@@ -11,9 +13,7 @@ function App() {
   const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenges>({data: []});
 
   const getData = async () => {
-    const foo = await getUpcomingChallenges(30);
-    console.log(foo);
-    setUpcomingChallenges(foo);
+    setUpcomingChallenges(await getUpcomingChallenges(30));
     // another call 1
     // another call 2
   }
@@ -30,13 +30,13 @@ function App() {
   );
 
   return (
-    <>
+    <MantineProvider defaultColorScheme="dark">
       <h1>C2 Erg Best</h1>
       <h2>Upcoming Challenges</h2>
       <div>
         {displayUpcomingChallenges()}
       </div>
-    </>
+    </MantineProvider>
   )
 }
 
