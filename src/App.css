@@ -14,6 +14,12 @@
   border-left:1px solid blue;
 }
 
+.filters-for-table {
+  border-bottom:1px solid blue;
+  margin-bottom:10px;
+  padding-bottom:10px;
+}
+
 .card {
   padding: 2em;
 }
