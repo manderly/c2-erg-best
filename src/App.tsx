@@ -3,6 +3,8 @@ import './App.css'
 import { getUpcomingChallenges } from './services/api.ts';
 import '@mantine/core/styles.css';
 import { MantineProvider } from '@mantine/core';
+import { Text, Paper, Grid, Pill } from '@mantine/core';
+import {formatDistanceToNow} from 'date-fns'
 
 type UpcomingChallenges = {
   data: object[];
@@ -10,6 +12,9 @@ type UpcomingChallenges = {
 
 
 function App() {
+  const gradient =
+    'linear-gradient(45deg, #003470 0%, #001122 100%)';
+
   const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenges>({data: []});
 
   const getData = async () => {
@@ -22,20 +27,34 @@ function App() {
   }, []);
 
   const displayUpcomingChallenges = () => (
-    upcomingChallenges.data.map((item) =>
-      <div key={item.key}>
-        <h3>{item.key}</h3>
-        <label>{item.description}</label>
-      </div>)
+    <>
+    <h2>Upcoming Challenges</h2>
+    <Paper shadow="xs" p="md">
+      {upcomingChallenges.data.map((item) =>
+        <div key={item.key}>
+          <Text>{item.name}</Text>
+          <label>{item.description}</label>
+          <Pill styles={{root: { backgroundImage: gradient}}}>{formatDistanceToNow(new Date(item.end))} remaining</Pill>
+        </div>)
+      }
+    </Paper>
+    </>
   );
 
   return (
     <MantineProvider defaultColorScheme="dark">
+      <div className={"app-container"}>
       <h1>C2 Erg Best</h1>
-      <h2>Upcoming Challenges</h2>
-      <div>
-        {displayUpcomingChallenges()}
+        <Grid>
+          <Grid.Col span={9}></Grid.Col>
+
+          <Grid.Col span={3} className={'grid-challenges'}><div>
+            {displayUpcomingChallenges()}
+          </div>
+          </Grid.Col>
+        </Grid>
       </div>
+
     </MantineProvider>
   )
 }
