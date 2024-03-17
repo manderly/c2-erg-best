@@ -5,36 +5,20 @@ import '@mantine/core/styles.css';
 import { MantineProvider } from '@mantine/core';
 import { Text, Paper, Grid, Pill, Chip } from '@mantine/core';
 import {formatDistanceToNow} from 'date-fns';
-import cloneDeep from 'lodash.clonedeep'
 
 import { AgGridReact } from 'ag-grid-react'; // AG Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
+import {rawColData, rawRowData} from "./services/localData";
+import {filterRows} from "./services/utils";
 
 type UpcomingChallenges = {
   data: object[];
 }
 
-
 function App() {
   const gradient =
     'linear-gradient(45deg, #003470 0%, #001122 100%)';
-
-  const rawColData = [
-    { field: "ergType", flex: 1 },
-    { field: "date", flex: 2 },
-    { field: "time", flex: 2 },
-    { field: "pace", flex: 2 },
-    { field: "calories", flex: 2 },
-    { field: "stroke", flex: 2 },
-    { field: "best", flex: 2 },
-  ];
-
-  const rawRowData = [
-    { date: "01-01-2024", ergType: "Row", time: '5:50', pace: '2:51/500m', calories: '45', stroke: '25 s/m', best: false },
-    { date: "01-02-2024", ergType: "Bike", time: '25:00', pace: '2:25/1000m', calories: '110', stroke: '30 s/m', best: true},
-    { date: "01-03-2024", ergType: "Row", time: '8:30', pace: '2:45/500m', calories: '65', stroke: '26 s/m', best: true },
-  ];
 
   const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenges>({data: []});
   const [includeRower, setIncludeRower] = useState(true);
@@ -55,23 +39,8 @@ function App() {
     void getData();
   }, []);
 
-  const updateRows = () => {
-    const copiedRowData = cloneDeep(rawRowData);
-    const filteredRows = copiedRowData.filter((row) => {
-      if (row.ergType === 'Row' && includeRower) {
-        return true;
-      }
-      if (row.ergType === 'Bike' && includeBike) {
-        return true;
-      }
-      return false;
-    });
-
-    setRowData(filteredRows);
-  }
-
   useEffect(() => {
-    updateRows();
+    setRowData(filterRows(includeRower, includeBike));
   }, [includeBike, includeRower])
 
   const displayUpcomingChallenges = () => (
