@@ -1,33 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState, useEffect } from 'react'
 import './App.css'
+import { getUpcomingChallenges } from './services/api.ts';
+
+type UpcomingChallenges = {
+  data: object[];
+}
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenges>({data: []});
+
+  const getData = async () => {
+    const foo = await getUpcomingChallenges(30);
+    console.log(foo);
+    setUpcomingChallenges(foo);
+    // another call 1
+    // another call 2
+  }
+  useEffect(() => {
+    void getData();
+  }, []);
+
+  const displayUpcomingChallenges = () => (
+    upcomingChallenges.data.map((item) =>
+      <div key={item.key}>
+        <h3>{item.key}</h3>
+        <label>{item.description}</label>
+      </div>)
+  );
 
   return (
     <>
+      <h1>C2 Erg Best</h1>
+      <h2>Upcoming Challenges</h2>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {displayUpcomingChallenges()}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
