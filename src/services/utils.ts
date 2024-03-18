@@ -15,3 +15,4 @@ export const filterRows = (includeRower, includeBike) => {
 
   return filteredRows;
 }
+

@@ -9,3 +9,8 @@ const USE_LOCAL_DATA = true;
 export const getUpcomingChallenges = async (days: number) => {
   return USE_LOCAL_DATA ? upcomingChallenges : await Axios.get(`${logbookChallenges}/api/challenges/upcoming/${days}`); // .data ?
 }
+
+export const getResults = async (days: number) => {
+  return USE_LOCAL_DATA ? upcomingChallenges : await Axios.get(`${logbookChallenges}/api/challenges/upcoming/${days}`); // .data ?
+}
+
