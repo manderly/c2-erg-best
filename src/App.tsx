@@ -5,19 +5,38 @@ import '@mantine/core/styles.css';
 import {FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Text, Paper, Grid, Pill, Chip, Button, Card, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
-import {formatDistanceToNow, subDays} from 'date-fns';
+import {formatDistanceToNow, intervalToDuration, subDays} from 'date-fns';
 import { AgGridReact } from 'ag-grid-react'; // AG Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { useForm } from 'react-hook-form';
 import Papa from 'papaparse';
 import {ColDef} from "ag-grid-community";
+import { format } from "date-fns";
 
 const csvFile = '/concept2-season-2024.csv';
 
 type UpcomingChallenges = {
   data: object[];
 }
+
+const COLUMNS = [
+  'Date',
+  'Start Time',
+  'Type',
+  'Description',
+  'Work Time',
+  'Rest Time',
+  'Distance',
+  'Rest Distance',
+  'Stroke Rate',
+  'Stroke Count',
+  'Pace',
+  'Total cal',
+  'Avg. Heart Rate',
+  'Drag Factor',
+  'Ranked',
+];
 
 function App() {
   const gradient =
@@ -26,7 +45,7 @@ function App() {
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
   const { register, handleSubmit } = useForm();
-  const onSubmit = data => console.log(data);
+  const onSubmitFiltersForm = data => console.log(data);
 
   const [upcomingChallenges, setUpcomingChallenges] = useState<UpcomingChallenges>({data: []});
 
@@ -43,6 +62,18 @@ function App() {
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
+
+  const getFormattedDuration = (seconds: number) => {
+    const duration = intervalToDuration({
+      start: new Date(0, 0, 0, 0, 0, 0),
+      end: new Date(0,0,0,0,0, seconds)
+    })
+    const hr = duration.hours && duration.hours < 10 ? `0${duration.hours}` : duration.hours;
+    const min = duration.minutes && duration.minutes < 10 ? `0${duration.minutes}` : duration.minutes;
+    const sec = duration.seconds && duration.seconds < 10 ? `0${duration.seconds}` : duration.seconds;
+
+    return `${hr ?? '00'}:${min ?? '00'}:${sec ?? '00'}`
+  }
 
   const getData = async () => {
     await parseCSVIntoChartData(await fetchLocalCSVFile())
@@ -78,40 +109,35 @@ function App() {
   const parseCSVIntoChartData = (csvFile: unknown) => {
     Papa.parse(csvFile, {
       complete: function(results) {
-        const columnData: ColDef[] = results.data[0].filter((item) => {
-          return item !== 'weight' && item !== 'Date Entered' && item !== 'Comments';
-        }).map((item) => {
-          return {field: item}
-        });
+        const columnData = COLUMNS.map((colName: string) => {
+          return { field: colName}
+        })
         setColDefs(columnData);
 
-        const allRowData = results.data.map((item) => {
-          // todo: maybe this could iterate through columndata instead
+        results.data.shift();
+        const allRowData = results.data.filter(row => row.length > 1).map((item) => {
+          console.log(item[1]);
+          console.log(new Date(item[1]));
           return {
-            ['Log ID']: item[0],
-            ['Date']: item[1],
-            ['Description']: item[2],
-            ['Work Time (Formatted)']: item[3],
-            ["Work Time (Seconds)"]: item[4],
-            ["Rest Time (Formatted)"]: item[5],
-            ["Rest Time (Seconds)"]: item[6],
-            ["Work Distance"]: item[7] || "",
-            ["Rest Distance"]: item[8],
-            ["Stroke Rate/Cadence"]: item[9],
-            ["Stroke Count"]: item[10],
-            ["Pace"]: item[11],
-            ["Avg Watts"]: item[12],
-            ["Cal/Hour"]: item[13],
-            ["Total Cal"]: item[14],
-            ["Avg Heart Rate"]: item[15],
-            ["Drag Factor"]: item[16],
-            ["Age"]: item[17],
+            ['Date']: item[1] ? format(new Date(item[1]), "ccc MM/dd/yyyy") : 'not a date',
+            ['Start Time']: item[1] ? format(new Date(item[1]), "hh:mm aaa") : 'not a date',
             ["Type"]: item[19],
+            ['Description']: item[2],
+            ["Work Time"]: getFormattedDuration(item[4]),
+            ["Rest Time"]: getFormattedDuration(item[6]),
+            ["Distance"]: `${item[7]}m` || "",
+            ["Rest Distance"]: item[8] ? `${item[8]}m` : "",
+            ["Stroke Rate"]: item[9],
+            ["Stroke Count"]: item[10],
+            ["Pace"]: item[19] === 'RowErg' ? `${item[11]} / 500m` : `${item[11]} / 1000m`,
+            ["Total cal"]: `${item[14]} (${item[13]} cal/hr)`,
+            ["Avg. Heart Rate"]: item[15],
+            ["Drag Factor"]: item[16],
             ["Ranked"]: item[20],
           }
         })
 
-        allRowData.shift();
+        //allRowData.shift();
         setRowData(allRowData);
       }
     });
@@ -187,7 +213,7 @@ function App() {
         wrap="wrap"
         className={"filter-data"}
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmitFiltersForm)}>
           <DateInput value={startDate} onChange={setStartDate} label={"Start"} valueFormat={DATE_FORMAT}/>
           <DateInput value={endDate} onChange={setEndDate} label={"End"} valueFormat={DATE_FORMAT}/>
 
