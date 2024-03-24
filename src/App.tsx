@@ -1,8 +1,8 @@
-import {useState, useEffect, ReactNode} from 'react'
+import {useState, useEffect} from 'react'
 import './App.css'
 import {getUpcomingChallenges} from './services/api.ts';
 import '@mantine/core/styles.css';
-import {FileInput, Group, MantineProvider, NativeSelect} from '@mantine/core';
+import {FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Text, Paper, Grid, Pill, Chip, Button, Card, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {formatDistanceToNow, subDays} from 'date-fns';
@@ -12,6 +12,8 @@ import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied
 import { useForm } from 'react-hook-form';
 import Papa from 'papaparse';
 import {ColDef} from "ag-grid-community";
+
+const csvFile = '/concept2-season-2024.csv';
 
 type UpcomingChallenges = {
   data: object[];
@@ -37,17 +39,16 @@ function App() {
   const [includeBike, setIncludeBike] = useState(true);
   const [includeSki, setIncludeSki] = useState(true);
 
-  // sample ag-grid data
   const [rowData, setRowData] = useState();
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
 
   const getData = async () => {
+    await parseCSVIntoChartData(await fetchLocalCSVFile())
     setUpcomingChallenges(await getUpcomingChallenges(30));
-    // another call 1
-    // another call 2
   }
+
   useEffect(() => {
     void getData();
   }, []);
@@ -56,13 +57,26 @@ function App() {
   //   setRowData(filterRows(includeRower, includeBike));
   // }, [includeBike, includeRower])
 
+  const fetchLocalCSVFile = async () => {
+    try {
+      const response = await fetch(csvFile);
+      const reader = response.body.getReader();
+      const result = await reader.read();
+      const decoder = new TextDecoder('utf-8');
+      const csv = await decoder.decode(result.value);
+      console.log('csv', csv);
+      return csv;
+    } catch(e) {
+      console.log(e);
+    }
+  }
+
   const handleCSVInput = (event) => {
     setFile(event);
   }
 
-  const handleCSVUpload = async (e) => {
-    e.preventDefault();
-    Papa.parse(file, {
+  const parseCSVIntoChartData = (csvFile: unknown) => {
+    Papa.parse(csvFile, {
       complete: function(results) {
         const columnData: ColDef[] = results.data[0].filter((item) => {
           return item !== 'weight' && item !== 'Date Entered' && item !== 'Comments';
@@ -119,7 +133,7 @@ function App() {
   );
 
   const UploadFile = () => (
-    <form onSubmit={handleCSVUpload}>
+    <form onSubmit={parseCSVIntoChartData}>
       <Flex
         className={"upload-file"}
         mih={100}
@@ -131,12 +145,12 @@ function App() {
         <FileInput
           label="Upload Concept2 CSV data"
           description="Download from official site"
-          placeholder="Click to choose .csv file"
+          placeholder={file ? file['name'] : "Click to choose .csv file"}
           accept="csv"
           onChange={handleCSVInput}
           clearable
         />
-        <Button type={"submit"}>Upload</Button>
+        <Button type={"submit"} disabled={!file}>Upload</Button>
       </Flex>
     </form>
   );
