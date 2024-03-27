@@ -2,7 +2,7 @@ import {useState, useEffect} from 'react'
 import './App.css'
 import {getUpcomingChallenges} from './services/api.ts';
 import '@mantine/core/styles.css';
-import {FileInput, MantineProvider, NativeSelect} from '@mantine/core';
+import {Checkbox, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Text, Paper, Grid, Pill, Chip, Button, Card, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {formatDistanceToNow, intervalToDuration, subDays} from 'date-fns';
@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import Papa from 'papaparse';
 import {ColDef} from "ag-grid-community";
 import { format } from "date-fns";
+import clonedeep from 'lodash.clonedeep';
 
 const csvFile = '/concept2-season-2024.csv';
 
@@ -20,22 +21,38 @@ type UpcomingChallenges = {
   data: object[];
 }
 
-const COLUMNS = [
-  'Date',
-  'Start Time',
-  'Type',
-  'Description',
-  'Work Time',
-  'Rest Time',
-  'Distance',
-  'Rest Distance',
-  'Stroke Rate',
-  'Stroke Count',
-  'Pace',
-  'Total cal',
-  'Avg. Heart Rate',
-  'Drag Factor',
-  'Ranked',
+const ALL_COLUMNS = [
+  {field: 'Date', flex: 3.5},
+  {field: 'Start Time', flex: 2.5},
+  {field: 'Type', flex: 2},
+  {field: 'Description', flex: 3},
+  {
+    headerName: "Workout Time",
+    children: [
+      {field: 'Work Time', flex: 2.5, headerName: 'Work'},
+      {field: 'Rest Time', flex: 2.5, headerName: 'Rest'},
+    ],
+  },
+  {
+    headerName: 'Distance',
+    children: [
+      {field: 'Work Distance', flex: 2, headerName: 'Work'},
+      {field: 'Rest Distance', flex: 2, headerName: 'Rest'},
+    ]
+  },
+  {
+    headerName: 'Stroke',
+    children: [
+      {field: 'Stroke Rate', flex: 2, headerName: 'Rate'},
+      {field: 'Stroke Count', flex: 2, headerName: 'Count'},
+    ]
+  },
+
+  {field: 'Pace', flex: 1},
+  {field: 'Total cal', flex: 1},
+  {field: 'Avg. Heart Rate', flex: 1},
+  {field: 'Drag Factor', flex: 1},
+  {field: 'Ranked', flex: 1},
 ];
 
 function App() {
@@ -43,6 +60,51 @@ function App() {
     'linear-gradient(45deg, #003470 0%, #001122 100%)';
   const DATE_FORMAT = "MMM D, YYYY";
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+  const getFilteredRows = () => {
+    const copy = clonedeep(baseRowData);
+    if (copy && copy.length) {
+      return copy.filter((row) => {
+        if (includeBike && row.Type === 'BikeErg') {
+          return row;
+        } else if (!includeBike && row.Type === 'BikeErg') {
+          return;
+        }
+
+        if (includeRower && row.Type === 'RowErg') {
+          return row;
+        } else if (!includeRower && row.Type === 'RowErg') {
+          return;
+        }
+
+        return row;
+      })
+    }
+  }
+
+  const getFilteredColumns = () => {
+    return ALL_COLUMNS.filter((col: unknown ) => {
+      if (col.field === 'Total cal' && includeTotalCal) {
+        return col;
+      } else if (col.field === 'Total cal' && !includeTotalCal) {
+        return;
+      }
+
+      if (col.field === 'Ranked' && includeRanked) {
+        return col;
+      } else if (col.field === 'Ranked' && !includeRanked) {
+        return;
+      }
+
+      if (col.field === 'Drag Factor' && includeDragFactor) {
+        return col;
+      } else if (col.field === 'Drag Factor' && !includeDragFactor) {
+        return;
+      }
+
+      return col;
+    })
+  }
 
   const { register, handleSubmit } = useForm();
   const onSubmitFiltersForm = data => console.log(data);
@@ -57,11 +119,14 @@ function App() {
   const [includeRower, setIncludeRower] = useState(true);
   const [includeBike, setIncludeBike] = useState(true);
   const [includeSki, setIncludeSki] = useState(true);
-
+  const [includeTotalCal, setIncludeTotalCal] = useState(false);
+  const [includeRanked, setIncludeRanked] = useState(false);
+  const [includeDragFactor, setIncludeDragFactor] = useState(false);
+  const [baseRowData, setBaseRowData] = useState();
   const [rowData, setRowData] = useState();
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<ColDef[]>([]);
+  const [colDefs, setColDefs] = useState<ColDef[]>(getFilteredColumns());
 
   const getFormattedDuration = (seconds: number) => {
     const duration = intervalToDuration({
@@ -84,9 +149,13 @@ function App() {
     void getData();
   }, []);
 
-  // useEffect(() => {
-  //   setRowData(filterRows(includeRower, includeBike));
-  // }, [includeBike, includeRower])
+  useEffect(() => {
+    setColDefs(getFilteredColumns());
+  }, [includeTotalCal, includeRanked, includeDragFactor])
+
+  useEffect(() => {
+    setRowData(getFilteredRows());
+  }, [baseRowData, includeBike, includeRower])
 
   const fetchLocalCSVFile = async () => {
     try {
@@ -95,7 +164,7 @@ function App() {
       const result = await reader.read();
       const decoder = new TextDecoder('utf-8');
       const csv = await decoder.decode(result.value);
-      console.log('csv', csv);
+      //console.log('csv', csv);
       return csv;
     } catch(e) {
       console.log(e);
@@ -109,15 +178,8 @@ function App() {
   const parseCSVIntoChartData = (csvFile: unknown) => {
     Papa.parse(csvFile, {
       complete: function(results) {
-        const columnData = COLUMNS.map((colName: string) => {
-          return { field: colName}
-        })
-        setColDefs(columnData);
-
         results.data.shift();
         const allRowData = results.data.filter(row => row.length > 1).map((item) => {
-          console.log(item[1]);
-          console.log(new Date(item[1]));
           return {
             ['Date']: item[1] ? format(new Date(item[1]), "ccc MM/dd/yyyy") : 'not a date',
             ['Start Time']: item[1] ? format(new Date(item[1]), "hh:mm aaa") : 'not a date',
@@ -125,8 +187,8 @@ function App() {
             ['Description']: item[2],
             ["Work Time"]: getFormattedDuration(item[4]),
             ["Rest Time"]: getFormattedDuration(item[6]),
-            ["Distance"]: `${item[7]}m` || "",
-            ["Rest Distance"]: item[8] ? `${item[8]}m` : "",
+            ["Work Distance"]: `${item[7]}m` || "",
+            ["Rest Distance"]: item[8] ? `${item[8]}m` : "-",
             ["Stroke Rate"]: item[9],
             ["Stroke Count"]: item[10],
             ["Pace"]: item[19] === 'RowErg' ? `${item[11]} / 500m` : `${item[11]} / 1000m`,
@@ -135,10 +197,9 @@ function App() {
             ["Drag Factor"]: item[16],
             ["Ranked"]: item[20],
           }
-        })
+        });
 
-        //allRowData.shift();
-        setRowData(allRowData);
+        setBaseRowData(allRowData);
       }
     });
   }
@@ -203,13 +264,12 @@ function App() {
         </Chip>
       </Flex>
 
-
       <Flex
         mih={50}
         gap="md"
         justify="flex-start"
         align="flex-start"
-        direction="row"
+        direction="col"
         wrap="wrap"
         className={"filter-data"}
       >
@@ -225,8 +285,41 @@ function App() {
           />
         </form>
       </Flex>
+
+      <Flex
+        mih={50}
+        gap="md"
+        justify="flex-start"
+        align="flex-start"
+        direction="col"
+        wrap="wrap"
+        className={"filter-data"}
+      >
+        <Checkbox checked={includeTotalCal} label={"Include calories"} onChange={() => setIncludeTotalCal(prev => !prev)}/>
+        <Checkbox checked={includeRanked} label={"Include ranked"} onChange={() => setIncludeRanked(prev => !prev)}/>
+        <Checkbox checked={includeDragFactor} label={"Include drag factor"} onChange={() => setIncludeDragFactor(prev => !prev)}/>
+      </Flex>
     </>
   );
+
+  const gridOptions = {
+    getRowStyle: getRowStyleErgType
+  }
+
+  function getRowStyleErgType(item) {
+    if (item.data.Type === 'RowErg') {
+      return {
+        'background-color': '#455A64',
+        'color': '#F4F8F5'
+      }
+    } else if (item.data.Type === 'BikeErg') {
+      return {
+        'background-color': '#4CAF50',
+        'color': '#F4F8F5'
+      };
+    }
+    return null;
+  }
 
   const ResultsTable = () => (
     <div
@@ -236,6 +329,8 @@ function App() {
       <AgGridReact
         rowData={rowData}
         columnDefs={colDefs}
+        striped={true}
+        gridOptions={gridOptions}
       />
     </div>
   );
@@ -258,7 +353,7 @@ function App() {
       <div className={"app-container"}>
       <h1>C2 Erg Best</h1>
         <Grid className={"pad-left"}>
-          <Grid.Col span={9}>
+          <Grid.Col span={12}>
             <UploadFile />
             <SearchFilters />
             <ResultsTable/>
@@ -277,8 +372,7 @@ function App() {
             </Flex>
 
           </Grid.Col>
-
-          <Grid.Col span={3} className={'grid-challenges'}><div>
+          <Grid.Col span={12} className={'grid-challenges'}><div>
             {displayUpcomingChallenges()}
           </div>
           </Grid.Col>
