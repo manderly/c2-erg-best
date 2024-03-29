@@ -6,7 +6,7 @@ const logbookChallenges = 'https://log.concept2.com';
 
 const USE_LOCAL_DATA = true;
 
-export const getUpcomingChallenges = async (days: number) => {
+export const getUpcomingChallengesData = async (days: number) => {
   return USE_LOCAL_DATA ? upcomingChallenges : await Axios.get(`${logbookChallenges}/api/challenges/upcoming/${days}`); // .data ?
 }
 
