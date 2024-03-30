@@ -1,4 +1,4 @@
-import {format, intervalToDuration} from "date-fns";
+import {format, getMonth, intervalToDuration} from "date-fns";
 
 export const getFormattedDuration = (seconds: number) => {
   const duration = intervalToDuration({
@@ -21,4 +21,11 @@ export const getFormattedDate = (item) => {
 
 export const getFormattedTime = (item) => {
   return item ? format(new Date(item), "hh:mm aaa") : 'not a date';
+}
+export const getFormattedDistance = (item) => {
+  return item.match(/\d+/);
+}
+
+export const getMonthNumber = (item) => {
+  return getMonth(new Date(item)) + 1;
 }
