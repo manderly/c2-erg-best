@@ -1,20 +1,53 @@
-import {Card} from "@mantine/core";
+import {Card, Divider, Flex} from "@mantine/core";
+import {getFormattedDistanceString, isCurrentMonth} from "../services/formatting_utils";
 
 interface MonthCardsIF {
   bests: object,
 }
-export const MonthCards: React.FC<MonthCardsIF> = ({bests }) => {
-  for (const month in bests) {
-    return <Card className={"previous-month"}>
-      <h3>{month['name']}</h3>
-      <a>View workout</a>
+
+const ViewWorkoutLink = (id: string) => (
+  <div>
+    <a className={'view-workout-link'} href={id}>View workout</a>
+  </div>
+);
+
+const BestData = ({label, value}) => (
+  <div className={'best-data'}>
+    <Flex justify="space-between">
+      <strong>{label}</strong>
+      <ViewWorkoutLink id={'abc'} className={'pull-right'}/>
+    </Flex>
+    <Divider />
+    <div className={'best-data-value'}>{value}</div>
+    <div className={'tiny-date'}>on 1/1/2024</div>
+  </div>
+);
+
+const ErgData = ({label, data, distanceUnits = 500}) => (
+  data.distance > 0 && <>
+      <strong className={`erg-type-label ${label}-label`}>{label}</strong>
       <ul>
-        <li>Pace: 0</li>
-        <li>Distance: {month['distance']}</li>
-        <li>Calories: 100</li>
-        <li>Strokes: 10 s/m</li>
-        <li>Details</li>
+        <li><BestData label='Pace' value={`${data.pace} / ${distanceUnits}m`}/></li>
+        <li><BestData label='Distance' value={getFormattedDistanceString(data.distance)}/></li>
+        <li><BestData label='Stroke Rate' value={data.strokeRate}/></li>
       </ul>
-    </Card>
-  }
+    </>
+)
+
+const IndividualCard = ({month, data}) => (
+  <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
+    <h2>{data.name}</h2>
+    <h3 className={'pad-bottom'}>{data.year === 0 ? 'No data yet' : data.year}</h3>
+    <ErgData label='RowErg' data={data.rowErg}/>
+    <ErgData label='BikeErg' data={data.bikeErg} distanceUnits={1000}/>
+    <ErgData label='SkiErg' data={data.skiErg}/>
+  </Card>
+);
+
+export const MonthCards: React.FC<MonthCardsIF> = ({bests }) => {
+  return <>
+    {Object.entries(bests).map(([key, value]) => (
+      <IndividualCard key={`month-${key}`} month={key} data={value} />
+    ))}
+  </>
 };

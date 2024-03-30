@@ -4,8 +4,16 @@
   background-color:#001122;
 }
 
+a {
+  color: #89CFF0 !important;
+}
+
 .app-container {
   margin-left:10px;
+}
+
+h2, h3 {
+  margin:0;
 }
 
 .pad-left {
@@ -21,10 +29,6 @@
   padding: 2em;
 }
 
-.read-the-docs {
-  color: #888;
-}
-
 .upload-file {
   width:100%;
 }
@@ -33,6 +37,60 @@
   margin-bottom:20px;
 }
 
-.previous-month {
-  width:20%;
+.month-card {
+  width:22%;
+  border:1px solid #555;
+}
+
+.current-month {
+  border:1px solid #89CFF0;
+}
+
+.month-card ul {
+  list-style: none;
+  padding-left:0;
+}
+
+.view-workout-link {
+  font-size: var(--mantine-font-size-sm);
+}
+
+.best-data {
+  padding-bottom:16px;
+}
+
+.best-data-value {
+  font-size: var(--mantine-font-size-xl);
+  font-weight: bold;
+}
+
+.pad-bottom {
+  padding-bottom: 16px;
+}
+
+.main-page-title {
+  font-size: 2em;
+  padding-bottom:16px;
+}
+
+.erg-type-label {
+  color: #333;
+  padding:6px;
+  text-align:center;
+}
+
+.RowErg-label {
+  background-color:#EDCD44;
+}
+
+.BikeErg-label {
+  background-color:#81CAD6;
+}
+
+.SkiErg-label {
+  background-color:#DC3E26;
+}
+
+.tiny-date {
+  font-size: var(--mantine-font-size-xs);
 }

@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react'
 import './App.css'
 import '@mantine/core/styles.css';
-import {Checkbox, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
+import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Grid, Chip, Button, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {subDays} from 'date-fns';
@@ -14,16 +14,21 @@ import {ColDef, ICellRendererParams} from "ag-grid-community";
 import clonedeep from 'lodash.clonedeep';
 import {
   getFormattedDate,
-  getFormattedDistance,
+  getFormattedDistance, getFormattedDistanceString,
   getFormattedDuration,
   getFormattedTime,
-  getMonthNumber
+  getMonthNumber, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
 import {UpcomingChallenges} from "./components/UpcomingChallenges";
 import {MonthCards} from "./components/MonthCards";
 
 const csvFile = '/concept2-season-2024.csv';
 
+enum ErgTypes {
+  RowErg = 'rowErg',
+  BikeErg = 'bikeErg',
+  SkiErg = 'skiErg',
+}
 // interface IRow {
 //   data: {
 //     'Date': string;
@@ -50,19 +55,13 @@ interface IRow {
 }
 
 const distanceCellRenderer = (params: ICellRendererParams<IRow>) => {
-  if (params['valueFormatted']) {
-    const formatted = Number(params['valueFormatted']).toLocaleString();
-    return <>{`${formatted}m`}</>
-  } else {
-    return <>--</>
-  }
+  return getFormattedDistanceString(params['valueFormatted']);
 }
 
 const numberCellRenderer = (params: ICellRendererParams<IRow>) => {
-  console.log(params);
-  if (params['value']) {
-    const formatted = Number(params['value']).toLocaleString();
-    return <>{formatted}</>
+  const value = Number(params['value']);
+  if (value > 0) {
+    return <>{value.toLocaleString()}</>
   } else {
     return <>--</>
   }
@@ -138,18 +137,90 @@ const ALL_COLUMNS = [
 function App() {
   const DATE_FORMAT = "MMM D, YYYY";
   const bestsOfTheLastYear = {
-    1: {name: 'January', year: 2024, distance: 0},
-    2: {name: 'February', year: 2024, distance: 0},
-    3: {name: 'March', year: 2024, distance: 0},
-    4: {name: 'April', year: 2023, distance: 0},
-    5: {name: 'May', year: 2023, distance: 0},
-    6: {name: 'June', year: 2023, distance: 0},
-    7: {name: 'July', year: 2023, distance: 0},
-    8: {name: 'August', year: 2023, distance: 0},
-    9: {name: 'September', year: 2023, distance: 0},
-    10: {name: 'October', year: 2023, distance: 0},
-    11: {name: 'November', year: 2023, distance: 0},
-    12: {name: 'December', year: 2023, distance: 0},
+    1: {
+      name: 'January',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    2: {
+      name: 'February',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    3: {
+      name: 'March',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    4: {
+      name: 'April',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    5: {
+      name: 'May',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    6: {
+      name: 'June',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    7: {
+      name: 'July',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    8: {
+      name: 'August',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    9: {
+      name: 'September',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    10: {
+      name: 'October',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    11: {
+      name: 'November',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
+    12: {
+      name: 'December',
+      year: 0,
+      rowErg: {distance: 0, pace: 0, strokeRate: 0},
+      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
+      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+    },
   };
 
   const getFilteredRows = () => {
@@ -210,6 +281,11 @@ function App() {
   const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
   const [minimumDuration, setMinimumDuration] = useState(5);
+
+  const [hasRowErg, setHasRowErg] = useState(false);
+  const [hasBikeErg, setHasBikeErg] = useState(false);
+  const [hasSkiErg, setHasSkiErg] = useState(false);
+
   const [includeRower, setIncludeRower] = useState(true);
   const [includeBike, setIncludeBike] = useState(true);
   const [includeSki, setIncludeSki] = useState(true);
@@ -224,6 +300,8 @@ function App() {
   const [baseRowData, setBaseRowData] = useState();
   // Row Data: Filtered rows
   const [rowData, setRowData] = useState();
+  // Bests
+  const [bests, setBests] = useState(bestsOfTheLastYear);
 
   const getData = async () => {
     await parseCSVIntoChartData(await fetchLocalCSVFile())
@@ -261,11 +339,38 @@ function App() {
 
   const updateBests = (row: unknown) => {
     const month = getMonthNumber(row['Date']);
-    console.log(row['Work Distance']);
-    if (row['Work Distance'] > bestsOfTheLastYear[month].distance) {
-      bestsOfTheLastYear[month].distance = row['Work Distance'];
+    bestsOfTheLastYear[month].year = getRowYear(row['Date']);
+
+    const ergType = ErgTypes[row['Type']];
+    if (row['Work Distance'] > bestsOfTheLastYear[month][ergType].distance) {
+      bestsOfTheLastYear[month][ergType].distance = row['Work Distance'];
     }
-    console.log(bestsOfTheLastYear)
+
+    if (row['Work Distance'] > bestsOfTheLastYear[month][ergType].distance) {
+      bestsOfTheLastYear[month][ergType].distance = row['Work Distance'];
+    }
+
+    if (parseTimeToMilliseconds(row['Pace'] as string) > bestsOfTheLastYear[month][ergType].pace) {
+      bestsOfTheLastYear[month][ergType].pace = row['Pace'];
+    }
+
+    if (row['Stroke Rate'] > bestsOfTheLastYear[month][ergType].strokeRate) {
+      bestsOfTheLastYear[month][ergType].strokeRate = row['Stroke Rate'];
+    }
+  }
+
+  const updateErgTypes = (ergType: string) => {
+    if (!hasRowErg && ergType === 'RowErg') {
+      setHasRowErg(true);
+    }
+
+    if (!hasBikeErg && ergType === 'BikeErg') {
+      setHasBikeErg(true);
+    }
+
+    if (!hasSkiErg && ergType === 'SkiErg') {
+      setHasSkiErg(true);
+    }
   }
 
   const parseCSVIntoChartData = (csvFile: unknown) => {
@@ -273,16 +378,17 @@ function App() {
       complete: function(results) {
         results.data.shift();
         const allRowData = results.data.filter(row => row.length > 1).map((item) => {
+          updateErgTypes(item[19]);
           const rowData = {
             ['Date']: getFormattedDate(item[1]),
             ['Start Time']: getFormattedTime(item[1]),
             ["Type"]: item[19],
             ['Description']: item[2],
-            ["Pace"]: item[19] === 'RowErg' ? `${item[11]} / 500m` : `${item[11]} / 1000m`,
+            ["Pace"]: item[11], // === 'RowErg' ? `${item[11]} / 500m` : `${item[11]} / 1000m`,
             ["Work Time"]: getFormattedDuration(item[4]),
             ["Rest Time"]: getFormattedDuration(item[6]),
-            ["Work Distance"]: getFormattedDistance(item[7]) ?? '-',
-            ["Rest Distance"]: getFormattedDistance(item[8]) ?? '-',
+            ["Work Distance"]: getFormattedDistance(item[7]),
+            ["Rest Distance"]: getFormattedDistance(item[8]),
             ["Stroke Rate"]: item[9],
             ["Stroke Count"]: item[10],
             ["Total cal"]: `${item[14]} (${item[13]} cal/hr)`,
@@ -295,6 +401,7 @@ function App() {
           return rowData;
         });
 
+        setBests(bestsOfTheLastYear);
         setBaseRowData(allRowData);
       }
     });
@@ -303,7 +410,7 @@ function App() {
   const UploadFile = () => (
     <form onSubmit={parseCSVIntoChartData}>
       <Flex
-        className={"upload-file"}
+        className={"upload-file pad-bottom"}
         mih={100}
         gap="md"
         justify="flex-start"
@@ -325,7 +432,7 @@ function App() {
 
   const SearchFilters = () => (
     <>
-    <h2>Filter data</h2>
+    <h2 className={'main-page-title'}>Filter data</h2>
       <Flex
         mih={50}
         gap="md"
@@ -334,14 +441,16 @@ function App() {
         direction="row"
         wrap="wrap"
       >
-        <Chip checked={includeRower} onChange={() => setIncludeRower((v) => !v)}>
+        <Chip checked={includeRower && hasRowErg} disabled={!hasRowErg} onChange={() => setIncludeRower((v) => !v)}>
           RowErg
         </Chip>
-        <Chip checked={includeBike} onChange={() => setIncludeBike(v => !v)}>
-          BikeErg
+
+        <Chip checked={includeBike && hasBikeErg} disabled={!hasBikeErg} onChange={() => setIncludeBike(v => !v)}>
+            BikeErg
         </Chip>
-        <Chip checked={includeSki} onChange={() => setIncludeSki(v => !v)}>
-          SkiErg
+
+        <Chip checked={includeSki && hasSkiErg} disabled={!hasSkiErg} onChange={() => setIncludeSki(v => !v)}>
+            SkiErg
         </Chip>
       </Flex>
 
@@ -424,10 +533,11 @@ function App() {
         <Grid className={"pad-left"}>
           <Grid.Col span={12}>
             <UploadFile />
+            <Divider/>
             <SearchFilters />
             <ResultsTable/>
 
-            <h2>Bests</h2>
+            <h2 className={'main-page-title'}>Bests</h2>
 
             <Flex
               mih={50}
@@ -437,7 +547,7 @@ function App() {
               direction="row"
               wrap="wrap"
             >
-            <MonthCards bests={bestsOfTheLastYear}/>
+            <MonthCards bests={bests}/>
             </Flex>
 
           </Grid.Col>
