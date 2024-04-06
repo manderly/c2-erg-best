@@ -5,7 +5,7 @@ export const isCurrentMonth = (month: string) => {
   return currentMonth === Number(month);
 }
 
-export const getFormattedDuration = (seconds: number) => {
+export const getFormattedDuration = (seconds: number): string => {
   const duration = intervalToDuration({
     start: new Date(0, 0, 0, 0, 0, 0),
     end: new Date(0,0,0,0,0, seconds)
@@ -20,18 +20,18 @@ export const getFormattedDuration = (seconds: number) => {
   return `${hr ?? '00'}:${min ?? '00'}:${sec ?? '00'}`
 }
 
-export const getFormattedDate = (item) => {
+export const getFormattedDate = (item: string): string => {
   return item ? format(new Date(item), "ccc MM/dd/yyyy") : 'not a date';
 }
 
-export const getRowYear = (rowDate) => {
+export const getRowYear = (rowDate: string): number => {
   if (!rowDate) {
-    return '--';
+    return 0;
   }
   return getYear(rowDate);
 }
 
-export const getFormattedTime = (item) => {
+export const getFormattedTime = (item: string): string => {
   return item ? format(new Date(item), "hh:mm aaa") : 'not a date';
 }
 

@@ -1,16 +1,16 @@
-import {useState, useEffect} from 'react'
+import {useState, useEffect, useRef} from 'react'
 import './App.css'
 import '@mantine/core/styles.css';
 import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Grid, Chip, Button, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
-import {subDays} from 'date-fns';
+import {isAfter, isBefore, subDays} from 'date-fns';
 import { AgGridReact } from 'ag-grid-react'; // AG Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { useForm } from 'react-hook-form';
 import Papa from 'papaparse';
-import {ColDef, ICellRendererParams} from "ag-grid-community";
+import {ColDef, GridOptions, ICellRendererParams} from "ag-grid-community";
 import clonedeep from 'lodash.clonedeep';
 import {
   getFormattedDate,
@@ -24,34 +24,12 @@ import {MonthCards} from "./components/MonthCards";
 
 const csvFile = '/concept2-season-2024.csv';
 
-enum ErgTypes {
-  RowErg = 'rowErg',
-  BikeErg = 'bikeErg',
-  SkiErg = 'skiErg',
-}
-// interface IRow {
-//   data: {
-//     'Date': string;
-//     'Start Time': string;
-//     'Type': string;
-//     'Description': string;
-//     'Pace': string;
-//     'Work Time': string;
-//     'Rest Time': string;
-//     'Work Distance': string;
-//     'Rest Distance': string;
-//     'Stroke Rate': number;
-//     'Stroke Count': number;
-//     'Total Cal': string;
-//     'Avg. Heart Rate': string;
-//     'Drag Factor': number;
-//     'Ranked': string;
-//     'id': string;
-//     }[];
-// }
-
 interface IRow {
   valueFormatted: string,
+}
+
+const ergTypeCellRenderer = (params: ICellRendererParams) => {
+  return <>{params.data.type.charAt(0).toUpperCase() + params.data.type.slice(1)}</>;
 }
 
 const distanceCellRenderer = (params: ICellRendererParams<IRow>) => {
@@ -67,23 +45,46 @@ const numberCellRenderer = (params: ICellRendererParams<IRow>) => {
   }
 }
 
+type WorkoutDataType = {
+  data: WorkoutRowType,
+}
+
+type WorkoutRowType = {
+  date: string,
+  startTime: string,
+  type: string,
+  description: string,
+  pace: string,
+  workTime: string,
+  restTime: string,
+  workDistance: number,
+  restDistance: number,
+  strokeRate: number,
+  strokeCount: number,
+  totalCal: string,
+  avgHeartRate: number,
+  dragFactor: number,
+  ranked: boolean,
+  id: string,
+}
+
 const ALL_COLUMNS = [
-  {field: 'Date', flex: 3.2},
-  {field: 'Start Time', flex: 2.5},
-  {field: 'Type', flex: 2},
-  {field: 'Description', flex: 3},
-  {field: 'Pace', flex: 3},
+  {field: 'date', flex: 3.2},
+  {field: 'startTime', flex: 2.5},
+  {field: 'type', flex: 2, cellRenderer: ergTypeCellRenderer},
+  {field: 'description', flex: 3},
+  {field: 'pace', flex: 3},
   {
     headerName: "Workout Time",
     children: [
       {
-        field: 'Work Time',
+        field: 'workTime',
         flex: 2.5,
         headerName: 'Work',
         type: 'rightAligned'
       },
       {
-        field: 'Rest Time',
+        field: 'restTime',
         flex: 2.5,
         headerName: 'Rest',
         type: 'rightAligned',
@@ -94,14 +95,14 @@ const ALL_COLUMNS = [
     headerName: 'Distance',
     children: [
       {
-        field: 'Work Distance',
+        field: 'workDistance',
         flex: 2.5,
         headerName: 'Work',
         type: 'rightAligned',
         cellRenderer: distanceCellRenderer
       },
       {
-        field: 'Rest Distance',
+        field: 'restDistance',
         flex: 2.5,
         headerName: 'Rest',
         type: 'rightAligned',
@@ -113,13 +114,13 @@ const ALL_COLUMNS = [
     headerName: 'Stroke',
     children: [
       {
-        field: 'Stroke Rate',
+        field: 'strokeRate',
         flex: 1.5,
         headerName: 'Rate',
         type: 'rightAligned',
       },
       {
-        field: 'Stroke Count',
+        field: 'strokeCount',
         flex: 1.5,
         headerName: 'Count',
         type: 'rightAligned',
@@ -127,115 +128,135 @@ const ALL_COLUMNS = [
       },
     ]
   },
-
-  {field: 'Total cal', flex: 1},
-  {field: 'Avg. Heart Rate', flex: 1},
-  {field: 'Drag Factor', flex: 1},
-  {field: 'Ranked', flex: 1},
+  {field: 'totalCal', flex: 1},
+  {headerName: '♥', field: 'avgHeartRate', flex: 1},
+  {field: 'dragFactor', flex: 1},
+  {field: 'ranked', flex: 1},
 ];
 
+export interface RowData {
+  distance: number;
+  pace: string;
+  strokeRate: number;
+}
+
+export interface BestMonthIF {
+  name: string;
+  year: number;
+  rowErg: RowData;
+  bikeErg: RowData;
+  skiErg: RowData;
+}
+
+export interface BestByMonthsIF {
+  [key: number]: BestMonthIF
+}
 function App() {
   const DATE_FORMAT = "MMM D, YYYY";
-  const bestsOfTheLastYear = {
+  const bestsOfTheLastYear = useRef<BestByMonthsIF>({
     1: {
       name: 'January',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     2: {
       name: 'February',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     3: {
       name: 'March',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     4: {
       name: 'April',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     5: {
       name: 'May',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     6: {
       name: 'June',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     7: {
       name: 'July',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     8: {
       name: 'August',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     9: {
       name: 'September',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     10: {
       name: 'October',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     11: {
       name: 'November',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
     12: {
       name: 'December',
       year: 0,
-      rowErg: {distance: 0, pace: 0, strokeRate: 0},
-      bikeErg: {distance: 0, pace: 0, strokeRate: 0},
-      skiErg: {distance: 0, pace: 0, strokeRate: 0},
+      rowErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      bikeErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
+      skiErg: {distance: 0, pace: '00:00.0', strokeRate: 0},
     },
-  };
+  });
 
   const getFilteredRows = () => {
-    const copy = clonedeep(baseRowData);
+    const copy = clonedeep(unfilteredRowData);
     if (copy && copy.length) {
-      return copy.filter((row) => {
-        if (includeBike && row.Type === 'BikeErg') {
-          return row;
-        } else if (!includeBike && row.Type === 'BikeErg') {
+      return copy.filter((row: WorkoutRowType) => {
+        // ignore any row that isn't a selected type
+        if (!includeBike && row.type === 'BikeErg') {
+          return;
+        }
+        if (!includeRower && row.type === 'RowErg') {
+          return;
+        }
+        if (!includeSki && row.type === 'SkiErg') {
           return;
         }
 
-        if (includeRower && row.Type === 'RowErg') {
-          return row;
-        } else if (!includeRower && row.Type === 'RowErg') {
+        // ignore any row that is outside the date range
+        if (isBefore(new Date(row.date), new Date(startDate)) || isAfter(new Date(row.date), new Date(endDate))) {
           return;
         }
 
@@ -245,28 +266,28 @@ function App() {
   }
 
   const getFilteredColumns = () => {
-    return ALL_COLUMNS.filter((col: unknown ) => {
-      if (col.field === 'Start Time' && includeStartTime) {
+    return ALL_COLUMNS.filter((col: ColDef ) => {
+      if (col.field === 'startTime' && includeStartTime) {
         return col;
-      } else if (col.field === 'Start Time' && !includeStartTime) {
+      } else if (col.field === 'startTime' && !includeStartTime) {
         return;
       }
 
-      if (col.field === 'Total cal' && includeTotalCal) {
+      if (col.field === 'totalCal' && includeTotalCal) {
         return col;
-      } else if (col.field === 'Total cal' && !includeTotalCal) {
+      } else if (col.field === 'totalCal' && !includeTotalCal) {
         return;
       }
 
-      if (col.field === 'Ranked' && includeRanked) {
+      if (col.field === 'ranked' && includeRanked) {
         return col;
-      } else if (col.field === 'Ranked' && !includeRanked) {
+      } else if (col.field === 'ranked' && !includeRanked) {
         return;
       }
 
-      if (col.field === 'Drag Factor' && includeDragFactor) {
+      if (col.field === 'dragFactor' && includeDragFactor) {
         return col;
-      } else if (col.field === 'Drag Factor' && !includeDragFactor) {
+      } else if (col.field === 'dragFactor' && !includeDragFactor) {
         return;
       }
 
@@ -280,7 +301,7 @@ function App() {
 
   const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
-  const [minimumDuration, setMinimumDuration] = useState(5);
+  const [minimumDuration, setMinimumDuration] = useState('60');
 
   const [hasRowErg, setHasRowErg] = useState(false);
   const [hasBikeErg, setHasBikeErg] = useState(false);
@@ -296,11 +317,8 @@ function App() {
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<ColDef[]>(getFilteredColumns());
-  // Base Row Data: The unfiltered rows
-  const [baseRowData, setBaseRowData] = useState();
-  // Row Data: Filtered rows
-  const [rowData, setRowData] = useState();
-  // Bests
+  const [unfilteredRowData, setUnfilteredRowData] = useState([]);
+  const [filteredRowData, setFilteredRowData] = useState([]);
   const [bests, setBests] = useState(bestsOfTheLastYear);
 
   const getData = async () => {
@@ -316,8 +334,8 @@ function App() {
   }, [includeStartTime, includeTotalCal, includeRanked, includeDragFactor])
 
   useEffect(() => {
-    setRowData(getFilteredRows());
-  }, [baseRowData, includeBike, includeRower])
+    setFilteredRowData(getFilteredRows());
+  }, [unfilteredRowData, includeBike, includeRower, startDate, endDate])
 
   const fetchLocalCSVFile = async () => {
     try {
@@ -333,76 +351,89 @@ function App() {
     }
   }
 
-  const handleCSVInput = (event) => {
+  const handleCSVInput = (event: never) => {
     setFile(event);
   }
 
-  const updateBests = (row: unknown) => {
-    const month = getMonthNumber(row['Date']);
-    bestsOfTheLastYear[month].year = getRowYear(row['Date']);
+  type Months = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  type ErgType = 'rowErg' | 'skiErg' | 'bikeErg';
+  const updateBests = (row: WorkoutRowType) => {
+    const month = getMonthNumber(row.date) as Months;
+    if (bestsOfTheLastYear.current[month]) {
+      bestsOfTheLastYear.current[month].year = getRowYear(row.date);
 
-    const ergType = ErgTypes[row['Type']];
-    if (row['Work Distance'] > bestsOfTheLastYear[month][ergType].distance) {
-      bestsOfTheLastYear[month][ergType].distance = row['Work Distance'];
-    }
+      const ergType = row.type as ErgType;
+      if (ergType) {
+        if (row.workDistance > bestsOfTheLastYear.current[month][ergType].distance) {
+          bestsOfTheLastYear.current[month][ergType].distance = row.workDistance;
+        }
 
-    if (row['Work Distance'] > bestsOfTheLastYear[month][ergType].distance) {
-      bestsOfTheLastYear[month][ergType].distance = row['Work Distance'];
-    }
+        if (row.workDistance > bestsOfTheLastYear.current[month][ergType].distance) {
+          bestsOfTheLastYear.current[month][ergType].distance = row.workDistance;
+        }
 
-    if (parseTimeToMilliseconds(row['Pace'] as string) > bestsOfTheLastYear[month][ergType].pace) {
-      bestsOfTheLastYear[month][ergType].pace = row['Pace'];
-    }
+        // if milliseconds > 0 or pace as parsed to ms       2:34.7 user sees a string
+        if (parseTimeToMilliseconds(row.pace) > parseTimeToMilliseconds(bestsOfTheLastYear.current[month][ergType].pace)) {
+          bestsOfTheLastYear.current[month][ergType].pace = row.pace;
+        }
 
-    if (row['Stroke Rate'] > bestsOfTheLastYear[month][ergType].strokeRate) {
-      bestsOfTheLastYear[month][ergType].strokeRate = row['Stroke Rate'];
+        if (row.strokeRate > bestsOfTheLastYear.current[month][ergType].strokeRate) {
+          bestsOfTheLastYear.current[month][ergType].strokeRate = row.strokeRate;
+        }
+      }
+
     }
   }
 
   const updateErgTypes = (ergType: string) => {
-    if (!hasRowErg && ergType === 'RowErg') {
+    if (!hasRowErg && ergType === 'rowErg') {
       setHasRowErg(true);
     }
 
-    if (!hasBikeErg && ergType === 'BikeErg') {
+    if (!hasBikeErg && ergType === 'bikeErg') {
       setHasBikeErg(true);
     }
 
-    if (!hasSkiErg && ergType === 'SkiErg') {
+    if (!hasSkiErg && ergType === 'skiErg') {
       setHasSkiErg(true);
     }
   }
 
   const parseCSVIntoChartData = (csvFile: unknown) => {
     Papa.parse(csvFile, {
-      complete: function(results) {
+      complete: function(results: unknown) {
         results.data.shift();
-        const allRowData = results.data.filter(row => row.length > 1).map((item) => {
-          updateErgTypes(item[19]);
+        const allRowData = results.data.filter((row: (string|number)[]) => {
+          return row.length > 1;
+        }).map((row: (string|number)[]) => {
+          const ergType = String(row[19]).charAt(0).toLowerCase() + String(row[19]).slice(1);
+          updateErgTypes(ergType);
+
           const rowData = {
-            ['Date']: getFormattedDate(item[1]),
-            ['Start Time']: getFormattedTime(item[1]),
-            ["Type"]: item[19],
-            ['Description']: item[2],
-            ["Pace"]: item[11], // === 'RowErg' ? `${item[11]} / 500m` : `${item[11]} / 1000m`,
-            ["Work Time"]: getFormattedDuration(item[4]),
-            ["Rest Time"]: getFormattedDuration(item[6]),
-            ["Work Distance"]: getFormattedDistance(item[7]),
-            ["Rest Distance"]: getFormattedDistance(item[8]),
-            ["Stroke Rate"]: item[9],
-            ["Stroke Count"]: item[10],
-            ["Total cal"]: `${item[14]} (${item[13]} cal/hr)`,
-            ["Avg. Heart Rate"]: item[15],
-            ["Drag Factor"]: item[16],
-            ["Ranked"]: item[20],
-            ['id']: item[0],
+            date: getFormattedDate(String(row[1])),
+            startTime: getFormattedTime(String(row[1])),
+            type: ergType,
+            description: String(row[2]),
+            pace: String(row[11]), // example: 2:37.4
+            workTime: getFormattedDuration(Number(row[4])),
+            restTime: getFormattedDuration(Number(row[6])),
+            workDistance: getFormattedDistance(row[7]),
+            restDistance: getFormattedDistance(row[8]),
+            strokeRate: Number(row[9]),
+            strokeCount: Number(row[10]),
+            totalCal: `${row[14]} (${row[13]} cal/hr)`,
+            avgHeartRate: Number(row[15]),
+            dragFactor: Number(row[16]),
+            ranked: Boolean(row[20]),
+            id: String(row[0]),
           }
           updateBests(rowData);
+          //rowData.type = row[19];
           return rowData;
         });
 
         setBests(bestsOfTheLastYear);
-        setBaseRowData(allRowData);
+        setUnfilteredRowData(allRowData);
       }
     });
   }
@@ -441,7 +472,10 @@ function App() {
         direction="row"
         wrap="wrap"
       >
-        <Chip checked={includeRower && hasRowErg} disabled={!hasRowErg} onChange={() => setIncludeRower((v) => !v)}>
+        <Chip
+          checked={includeRower && hasRowErg}
+          disabled={!hasRowErg}
+          onChange={() => setIncludeRower((v) => !v)}>
           RowErg
         </Chip>
 
@@ -459,19 +493,23 @@ function App() {
         gap="md"
         justify="flex-start"
         align="flex-start"
-        direction="col"
         wrap="wrap"
         className={"filter-data"}
       >
         <form onSubmit={handleSubmit(onSubmitFiltersForm)}>
-          <DateInput value={startDate} onChange={setStartDate} label={"Start"} valueFormat={DATE_FORMAT}/>
-          <DateInput value={endDate} onChange={setEndDate} label={"End"} valueFormat={DATE_FORMAT}/>
+          <DateInput value={startDate} onChange={() => setStartDate} label={"Start"} valueFormat={DATE_FORMAT}/>
+          <DateInput value={endDate} onChange={() => setEndDate} label={"End"} valueFormat={DATE_FORMAT}/>
 
           <NativeSelect
             label={"Exclude workouts shorter than..."}
             value={minimumDuration}
             onChange={(event) => setMinimumDuration(event.currentTarget.value)}
-            data={['30 seconds', '1 minute', '5 minutes', '10 minutes']}
+            data={[
+              { label: '30 seconds', value: '30' },
+              { label: '1 minute', value: '60' },
+              { label: '5 minutes', value: '300' },
+              { label: '10 minutes', value: '600' },
+            ]}
           />
         </form>
       </Flex>
@@ -481,7 +519,6 @@ function App() {
         gap="md"
         justify="flex-start"
         align="flex-start"
-        direction="col"
         wrap="wrap"
         className={"filter-data"}
       >
@@ -493,19 +530,19 @@ function App() {
     </>
   );
 
-  const gridOptions = {
+  const gridOptions: GridOptions = {
     getRowStyle: getRowStyleErgType
   }
 
-  function getRowStyleErgType(item) {
-    if (item.data.Type === 'RowErg') {
+  function getRowStyleErgType(item: WorkoutDataType) {
+    if (item.data.type === 'rowErg') {
       return {
-        'backgroundColor': '#455A64',
+        'backgroundColor': '#afbd22', //'#455A64',
         'color': '#F4F8F5'
       }
-    } else if (item.data.Type === 'BikeErg') {
+    } else if (item.data.type === 'bikeErg') {
       return {
-        'backgroundColor': '#4CAF50',
+        'backgroundColor': '#003A70', //'#4CAF50',
         'color': '#F4F8F5'
       };
     }
@@ -513,28 +550,34 @@ function App() {
   }
 
   const ResultsTable = () => (
-    <div
-      className="ag-theme-quartz" // applying the grid theme
-      style={{ height: 600 }} // the grid will fill the size of the parent container
-    >
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={colDefs}
-        striped={true}
-        gridOptions={gridOptions}
-      />
-    </div>
+    <>
+      <div
+        className="ag-theme-quartz" // applying the grid theme
+        style={{ height: 600 }} // expand grid to fit parent container
+      >
+        <AgGridReact
+          rowData={filteredRowData}
+          columnDefs={colDefs}
+          gridOptions={gridOptions}
+        />
+      </div>
+    </>
   );
 
   return (
     <MantineProvider defaultColorScheme="dark">
       <div className={"app-container"}>
-      <h1>C2 Erg Best</h1>
+      <h2>C2 Erg Best</h2>
         <Grid className={"pad-left"}>
           <Grid.Col span={12}>
             <UploadFile />
             <Divider/>
             <SearchFilters />
+            {filteredRowData &&
+                <>
+                    Showing {filteredRowData.length} of {unfilteredRowData.length} workouts
+                </>
+            }
             <ResultsTable/>
 
             <h2 className={'main-page-title'}>Bests</h2>
@@ -547,7 +590,7 @@ function App() {
               direction="row"
               wrap="wrap"
             >
-            <MonthCards bests={bests}/>
+            <MonthCards bests={bests.current}/>
             </Flex>
 
           </Grid.Col>
