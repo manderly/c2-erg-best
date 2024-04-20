@@ -1,5 +1,9 @@
-class DisplayRowType {
-  type: string;
+export type ErgType = 'rowErg' | 'skiErg' | 'bikeErg';
+
+export type DisplayRowType = {
+  label: string,
+  date: string,
+  type: string,
 }
 
 export type WorkoutDataType = {
@@ -7,6 +11,7 @@ export type WorkoutDataType = {
 }
 
 export type WorkoutRowType = {
+  dateRaw: string,
   date: string,
   startTime: string,
   type: string,

@@ -1,7 +1,7 @@
 import {Card, Divider, Flex} from "@mantine/core";
-import {isCurrentMonth} from "../services/formatting_utils";
-import {BestDataIF, BestIF, BestMonthIF} from "../App.tsx";
+import {getFormattedDistanceString, isCurrentMonth} from "../services/formatting_utils";
 import _ from 'lodash';
+import {BestDataIF, BestIF, BestMonthIF} from "../types/types.ts";
 
 interface MonthCardsIF {
   bests: object,
@@ -15,11 +15,6 @@ const ViewWorkoutLink = (id: string) => (
     <a className={'view-workout-link'} href={id}>View workout</a>
   </div>
 );
-
-interface DisplayBestDataIF {
-  label: string,
-  data: BestIF,
-}
 
 const DisplayBestPace = ({data, distanceUnits}) => (
   <div className={'best-data'}>
@@ -40,7 +35,7 @@ const DisplayBestDistance = ({data}) => (
       <ViewWorkoutLink id={data.workoutId}/>
     </Flex>
     <Divider/>
-    <div className={'best-data-value'}>{`${data.value} m`}</div>
+    <div className={'best-data-value'}>{`${getFormattedDistanceString(data.value)}`}</div>
     <div className={'tiny-date'}>on {data.date}</div>
   </div>
 )
@@ -86,9 +81,9 @@ interface IndividualCardIF {
 const IndividualCard = ({month, data, hasRowErg, hasBikeErg, hasSkiErg}: IndividualCardIF) => (
   <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
     <h2>{data.name}</h2>
-    <h3 className={'pad-bottom'}>{data.year === 0 ? 'No data yet' : data.year}</h3>
+    <h4 className={'pad-bottom'}>{data.year === 0 ? 'No data yet' : data.year}</h4>
     {hasRowErg && <ErgData label='RowErg' data={data.rowErg} distanceUnits="500" strokeUnits='per min'/>}
-    {hasBikeErg && <ErgData label='BikeErg' data={data.bikeErg} distanceUnits='1000' strokeUnits='rpm'/>}
+    {hasBikeErg && <ErgData label='BikeErg' data={data.bikeErg} distanceUnits='1,000' strokeUnits='rpm'/>}
     {hasSkiErg && <ErgData label='SkiErg' data={data.skiErg}/>}
   </Card>
 );

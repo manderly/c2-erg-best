@@ -1,7 +1,7 @@
-import {useState, useEffect, useMemo} from 'react'
+import {useState, useEffect} from 'react';
 import './App.css'
 import '@mantine/core/styles.css';
-import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
+import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect, Radio, RadioGroup} from '@mantine/core';
 import { Grid, Chip, Button, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {isAfter, isBefore, subDays} from 'date-fns';
@@ -13,17 +13,33 @@ import Papa from 'papaparse';
 import {ColDef, GridOptions, ICellRendererParams} from "ag-grid-community";
 import _ from 'lodash';
 import {
+  formatMillisecondsToTimestamp,
   getFormattedDate,
   getFormattedDistance, getFormattedDistanceString,
-  getFormattedDuration,
+  getFormattedDuration, getFormattedPaceTick, getFormattedPaceTicks,
   getFormattedTime,
   getMonthNumber, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
-import {UpcomingChallenges} from "./components/UpcomingChallenges";
 import {MonthCards} from "./components/MonthCards";
-import {BestDataIF, RowIF, WorkoutDataType, DisplayRowType} from "./types/types.ts";
+import {BestDataIF, RowIF, WorkoutDataType, DisplayRowType, ErgType, WorkoutRowType} from "./types/types.ts";
+import {BarChartComponent} from "./components/BarChartComponent.tsx";
+import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "./consts/consts.ts";
 
 const csvFile = '/concept2-season-2024.csv';
+
+function getColorForErgType(ergType: string) {
+  switch (ergType) {
+    case "rowErg":
+      return ROW_ERG_COLOR; // Hex color for rowErg
+    case "bikeErg":
+      return BIKE_ERG_COLOR; // Hex color for bikeErg
+    case "skiErg":
+      return SKI_ERG_COLOR; // Hex color for skiErg
+    default:
+      return "#000000"; // Default color if ergType doesn't match any case
+  }
+}
+
 
 const ergTypeCellRenderer = (params: ICellRendererParams) => {
   return <>{params.data.type.charAt(0).toUpperCase() + params.data.type.slice(1)}</>;
@@ -134,7 +150,6 @@ function App() {
     const copy = _.cloneDeep(unfilteredRowData);
     if (copy && copy.length) {
       return copy.filter((row: DisplayRowType) => {
-        // ignore any row that isn't a selected type
         if (!includeBike && row.type === 'BikeErg') {
           return;
         }
@@ -189,7 +204,7 @@ function App() {
   const onSubmitFiltersForm = data => console.log(data);
   const [file, setFile] = useState();
 
-  const [startDate, setStartDate] = useState(subDays(new Date(), 30));
+  const [startDate, setStartDate] = useState(subDays(new Date(), 120));
   const [endDate, setEndDate] = useState(new Date());
   const [minimumDuration, setMinimumDuration] = useState('60');
 
@@ -210,6 +225,14 @@ function App() {
   const [unfilteredRowData, setUnfilteredRowData] = useState([]);
   const [filteredRowData, setFilteredRowData] = useState([]);
   const [bests, setBests] = useState([]);
+
+  const [distanceTrendsRow, setDistanceTrendsRow] = useState([]);
+  const [distanceTrendsBike, setDistanceTrendsBike] = useState([]);
+
+  const [paceTrendsRow, setPaceTrendsRow] = useState([]);
+  const [paceTrendsBike, setPaceTrendsBike] = useState([]);
+
+  const [chartErgType, setChartErgType] = useState("rowErg");
 
   const getData = async () => {
     await parseCSVIntoChartData(await fetchLocalCSVFile())
@@ -245,7 +268,9 @@ function App() {
     setFile(event);
   }
 
-  type ErgType = 'rowErg' | 'skiErg' | 'bikeErg';
+  const handleChartErgTypeRadio = (e: any) => {
+    setChartErgType(e);
+  }
 
   const updateUsersErgEquipmentTypes = (ergType: string) => {
     if (!hasRowErg && ergType === 'rowErg') {
@@ -265,7 +290,14 @@ function App() {
     Papa.parse(csvFile, {
       complete: function(results: unknown) {
         results.data.shift();
+        const localDistanceTrendsRow: {date: string, distance: number}[] = [];
+        const localPaceTrendsRow: {date: string, pace: number}[] = [];
+
+        const localDistanceTrendsBike: {date: string, distance: number}[] = [];
+        const localPaceTrendsBike: {date: string, pace: number}[] = [];
+
         const localBests = {};
+
         // get all the row data line by line from the csv
         const allRowData = _.chain(results.data)
           .filter((row: (string|number)[]) => row.length > 1)
@@ -295,7 +327,7 @@ function App() {
               id: String(row[0]),
             }
 
-            // check it against known bests
+            // build "bests" data object
             const monthIdx = getMonthNumber(parsedCSVRowData.date)-1;
             const monthName = MONTH_NAMES[monthIdx];
             if (localBests[monthName] === undefined) {
@@ -329,11 +361,38 @@ function App() {
               localBests[monthName][ergType].bestStroke.workoutId = parsedCSVRowData.id;
             }
 
+            // add to "distanceTrends" object
+            const newDistance: {date: string, distance: number} = {
+              date: parsedCSVRowData.date,
+              distance: parsedCSVRowData.workDistance,
+            }
+            if (ergType==='rowErg') {
+              localDistanceTrendsRow.push(newDistance);
+            } else {
+              localDistanceTrendsBike.push(newDistance);
+            }
+
+
+            // add to "paceTrends" object
+            const newPace: {date: string, pace: number} = {
+              date: parsedCSVRowData.date,
+              pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
+            }
+            if (ergType==='rowErg') {
+              localPaceTrendsRow.push(newPace);
+            } else {
+              localPaceTrendsBike.push(newPace);
+            }
+
 
             return parsedCSVRowData;
         }).value();
 
-        setBests(localBests)
+        setBests(localBests);
+        setDistanceTrendsRow(localDistanceTrendsRow);
+        setDistanceTrendsBike(localDistanceTrendsBike);
+        setPaceTrendsRow(localPaceTrendsRow);
+        setPaceTrendsBike(localPaceTrendsBike);
         setUnfilteredRowData(allRowData);
       }
     });
@@ -342,10 +401,10 @@ function App() {
   const UploadFile = () => (
     <form onSubmit={parseCSVIntoChartData}>
       <Flex
-        className={"upload-file pad-bottom"}
-        mih={100}
+        className={"upload-file pad-bottom pad-right"}
+        mih={90}
         gap="md"
-        justify="flex-start"
+        justify="flex-end"
         align="flex-end"
         direction="row"
         wrap="wrap">
@@ -438,12 +497,12 @@ function App() {
   function getRowStyleErgType(item: WorkoutDataType) {
     if (item.data.type === 'rowErg') {
       return {
-        'backgroundColor': '#afbd22', //'#455A64',
+        'backgroundColor': '#6E751F',
         'color': '#F4F8F5'
       }
     } else if (item.data.type === 'bikeErg') {
       return {
-        'backgroundColor': '#003A70', //'#4CAF50',
+        'backgroundColor': '#003A70',
         'color': '#F4F8F5'
       };
     }
@@ -468,40 +527,67 @@ function App() {
   return (
     <MantineProvider defaultColorScheme="dark">
       <div className={"app-container"}>
-      <h2>C2 Erg Best</h2>
-        <Grid className={"pad-left"}>
-          <Grid.Col span={12}>
-            <UploadFile />
-            <Divider/>
-            <SearchFilters />
-            {filteredRowData &&
-                <>
-                    Showing {filteredRowData.length} of this season's {unfilteredRowData.length} workouts
-                </>
-            }
-            <ResultsTable/>
 
-            <h2 className={'main-page-title'}>Bests</h2>
+        <Grid className={"pad-left pad-right"}>
+          <Grid.Col span={12}>
+            <Flex justify="space-between" className={"pad-top"}>
+              <h2 className={"app-title"}>C2 Erg Bests</h2>
+              <UploadFile/>
+            </Flex>
+            <Divider/>
+
+            {filteredRowData &&
+                <p>You completed {unfilteredRowData.length} workouts this season 🥇</p>
+            }
 
             <Flex
-              mih={50}
-              gap="md"
+              mih={600}
+              gap="sm"
               justify="flex-start"
-              align="flex-start"
+              align="space-between"
               direction="row"
               wrap="wrap"
             >
-            <MonthCards bests={bests} hasRowErg={hasRowErg} hasBikeErg={hasBikeErg} hasSKiErg={hasSkiErg}/>
+              <MonthCards bests={bests} hasRowErg={hasRowErg} hasBikeErg={hasBikeErg} hasSkiErg={hasSkiErg}/>
             </Flex>
 
-          </Grid.Col>
-          <Grid.Col span={12} className={'grid-challenges'}><div>
-            <UpcomingChallenges />
-          </div>
+            <br/>
+            <h2 className={'main-page-title'}>Trends ({chartErgType})</h2>
+            <RadioGroup value={chartErgType} onChange={handleChartErgTypeRadio}>
+              {hasRowErg && <Radio value="rowErg" label="RowErg" className={"mb-10"}/>}
+              {hasBikeErg && <Radio value="bikeErg" label="BikeErg" className={"mb-10"}/>}
+              {hasSkiErg && <Radio value="skiErg" label="SkiErg"/>}
+            </RadioGroup>
+
+            <BarChartComponent
+              title={"Distance"}
+              data={chartErgType === 'rowErg' ? distanceTrendsRow : distanceTrendsBike}
+              dataKey={"distance"}
+              hexFill={getColorForErgType(chartErgType)}
+              tickFormatter={getFormattedDistanceString}
+            />
+            <BarChartComponent
+              title={"Pace"}
+              data={chartErgType === 'rowErg' ? paceTrendsRow : paceTrendsBike}
+              dataKey={"pace"}
+              hexFill={getColorForErgType(chartErgType)}
+              tickFormatter={formatMillisecondsToTimestamp}
+            />
+
+            <SearchFilters/>
+            <h2 className={'main-page-title'}>Logbook</h2>
+            {filteredRowData &&
+                <>Showing {filteredRowData.length} of this season's {unfilteredRowData.length} workouts</>
+            }
+            <ResultsTable />
+
           </Grid.Col>
         </Grid>
       </div>
 
+      <div className={"bottom-credits"}>
+        App by Mandi Burley, 2024
+      </div>
     </MantineProvider>
   )
 }

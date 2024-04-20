@@ -21,7 +21,7 @@ export const getFormattedDuration = (seconds: number): string => {
 }
 
 export const getFormattedDate = (item: string): string => {
-  return item ? format(new Date(item), "ccc MM/dd/yyyy") : 'not a date';
+  return item ? format(new Date(item), "M/d/yy") : 'not a date';
 }
 
 export const getRowYear = (rowDate: string): number => {
@@ -37,7 +37,6 @@ export const getFormattedTime = (item: string): string => {
 
 export const getFormattedDistance = (item): number => {
   return item ? Number(item) : 0;
-  //return item ? item.match(/\d+/) : 0;
 }
 
 export const getFormattedDistanceString = (item): string => {
@@ -51,6 +50,7 @@ export const getMonthNumber = (item) => {
   return getMonth(new Date(item)) + 1;
 }
 
+// Transforms data like "2:56.5" into millisecond value
 export const parseTimeToMilliseconds = (timeString: string): number => {
   const [minutesStr, secondsWithMillisecondsStr] = timeString.split(':');
   const [secondsStr, millisecondsStr] = secondsWithMillisecondsStr.split('.');
@@ -63,3 +63,18 @@ export const parseTimeToMilliseconds = (timeString: string): number => {
 
   return resultDate.getTime();
 }
+
+export const formatMillisecondsToTimestamp = (milliseconds: number): string => {
+  // Create a Date object from milliseconds
+  const date = new Date(milliseconds);
+
+  // Extract minutes, seconds, and milliseconds
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+  const millisecondsRemaining = date.getMilliseconds();
+
+  // Format the timestamp string
+  const formattedTimestamp = `${minutes}:${seconds}.${millisecondsRemaining}`;
+
+  return formattedTimestamp;
+};
