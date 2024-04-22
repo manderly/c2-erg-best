@@ -131,7 +131,7 @@ const DEFAULT_RECORD_DATA: BestDataIF = {
     workoutId: '',
   },
   bestPace: {
-    value: '00:00.0',
+    value: '999:00.0',
     date: '',
     workoutId: '',
   },
@@ -348,7 +348,7 @@ function App() {
             }
 
             // Update best pace, if better
-            if (parseTimeToMilliseconds(parsedCSVRowData.pace) > parseTimeToMilliseconds(String(localBests[monthName][ergType].bestPace.value))) {
+            if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localBests[monthName][ergType].bestPace.value))) {
               localBests[monthName][ergType].bestPace.value = parsedCSVRowData.pace;
               localBests[monthName][ergType].bestPace.date = parsedCSVRowData.date;
               localBests[monthName][ergType].bestPace.workoutId = parsedCSVRowData.id;
