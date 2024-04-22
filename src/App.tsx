@@ -150,13 +150,13 @@ function App() {
     const copy = _.cloneDeep(unfilteredRowData);
     if (copy && copy.length) {
       return copy.filter((row: DisplayRowType) => {
-        if (!includeBike && row.type === 'BikeErg') {
+        if (!includeBike && row.type === 'bikeErg') {
           return;
         }
-        if (!includeRower && row.type === 'RowErg') {
+        if (!includeRower && row.type === 'rowErg') {
           return;
         }
-        if (!includeSki && row.type === 'SkiErg') {
+        if (!includeSki && row.type === 'skiErg') {
           return;
         }
 
