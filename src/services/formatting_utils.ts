@@ -35,18 +35,18 @@ export const getFormattedTime = (item: string): string => {
   return item ? format(new Date(item), "hh:mm aaa") : 'not a date';
 }
 
-export const getFormattedDistance = (item): number => {
+export const getFormattedDistance = (item: string): number => {
   return item ? Number(item) : 0;
 }
 
-export const getFormattedDistanceString = (item): string => {
+export const getFormattedDistanceString = (item: string): string => {
   if (!item) {
     return '--';
   }
   return `${Number(item).toLocaleString()}m`;
 }
 
-export const getMonthNumber = (item) => {
+export const getMonthNumber = (item: string) => {
   return getMonth(new Date(item)) + 1;
 }
 
