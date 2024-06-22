@@ -10,22 +10,69 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { useForm } from 'react-hook-form';
 import Papa from 'papaparse';
-import {ColDef, GridOptions, ICellRendererParams} from "ag-grid-community";
+import {ColDef, GridOptions, ICellRendererParams} from 'ag-grid-community';
 import _ from 'lodash';
 import {
   formatMillisecondsToTimestamp,
   getFormattedDate,
   getFormattedDistance, getFormattedDistanceString,
-  getFormattedDuration, getFormattedPaceTick, getFormattedPaceTicks,
+  getFormattedDuration,
   getFormattedTime,
   getMonthNumber, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
 import {MonthCards} from "./components/MonthCards";
-import {BestDataIF, RowIF, WorkoutDataType, DisplayRowType, ErgType, WorkoutRowType} from "./types/types.ts";
+import {BestDataIF, RowIF, WorkoutDataType, DisplayRowType, ErgType} from "./types/types.ts";
 import {BarChartComponent} from "./components/BarChartComponent.tsx";
 import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "./consts/consts.ts";
 
 const csvFile = '/concept2-season-2024.csv';
+
+interface ParsedCSVRowDataIF {
+  dateRaw: string;
+  date: string;
+  startTime: string;
+  type: ErgType;
+  description: string;
+  pace: string;
+  workTime: string;
+  restTime: string;
+  workDistance: number;
+  restDistance: number;
+  strokeRate: number;
+  strokeCount: number;
+  totalCal: string;
+  avgHeartRate: number;
+  dragFactor: number;
+  ranked: boolean;
+  id: string;
+}
+
+interface MonthDataIF {
+  name: string,
+  year: number,
+  rowErg: BestDataIF,
+  bikeErg: BestDataIF,
+  skiErg: BestDataIF,
+}
+type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
+type LocalBests = {
+  [key in Months]?: MonthDataIF;
+};
+
+
+interface ResultsIF {
+  data: [];
+}
+
+interface DateAndDistanceIF {
+  date: string;
+  distance: number;
+}
+
+interface DateAndPaceIF {
+  date: string,
+  pace: number
+}
 
 function getColorForErgType(ergType: string) {
   switch (ergType) {
@@ -200,9 +247,8 @@ function App() {
     })
   }
 
-  const { register, handleSubmit } = useForm();
-  const onSubmitFiltersForm = data => console.log(data);
-  const [file, setFile] = useState();
+  const {  handleSubmit } = useForm();
+  const [file, setFile] = useState<File | null>(null);
 
   const [startDate, setStartDate] = useState(subDays(new Date(), 120));
   const [endDate, setEndDate] = useState(new Date());
@@ -222,20 +268,20 @@ function App() {
 
   // Column Definitions: Defines the columns to be displayed.
   const [colDefs, setColDefs] = useState<ColDef[]>(getFilteredColumns());
-  const [unfilteredRowData, setUnfilteredRowData] = useState([]);
+  const [unfilteredRowData, setUnfilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
   const [filteredRowData, setFilteredRowData] = useState([]);
-  const [bests, setBests] = useState([]);
+  const [bests, setBests] = useState({});
 
-  const [distanceTrendsRow, setDistanceTrendsRow] = useState([]);
-  const [distanceTrendsBike, setDistanceTrendsBike] = useState([]);
+  const [distanceTrendsRow, setDistanceTrendsRow] = useState<DateAndDistanceIF[]>([]);
+  const [distanceTrendsBike, setDistanceTrendsBike] = useState<DateAndDistanceIF[]>([]);
 
-  const [paceTrendsRow, setPaceTrendsRow] = useState([]);
-  const [paceTrendsBike, setPaceTrendsBike] = useState([]);
+  const [paceTrendsRow, setPaceTrendsRow] = useState<DateAndPaceIF[]>([]);
+  const [paceTrendsBike, setPaceTrendsBike] = useState<DateAndPaceIF[]>([]);
 
   const [chartErgType, setChartErgType] = useState("rowErg");
 
-  const getData = async () => {
-    await parseCSVIntoChartData(await fetchLocalCSVFile())
+  const getData = () => {
+    parseCSVIntoChartData(fetchLocalCSVFile())
   }
 
   useEffect(() => {
@@ -253,22 +299,30 @@ function App() {
   const fetchLocalCSVFile = async () => {
     try {
       const response = await fetch(csvFile);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error('ReadableStream not supported or response body is null');
+      }
+
       const reader = response.body.getReader();
       const result = await reader.read();
       const decoder = new TextDecoder('utf-8');
-      const csv = await decoder.decode(result.value);
-      //console.log('csv', csv);
+      const csv = decoder.decode(result.value);
       return csv;
     } catch(e) {
       console.log(e);
     }
   }
 
-  const handleCSVInput = (event: never) => {
-    setFile(event);
+  const handleCSVInput = (payload: File | null) => {
+    setFile(payload);
   }
 
-  const handleChartErgTypeRadio = (e: any) => {
+  const handleChartErgTypeRadio = (e: string) => {
     setChartErgType(e);
   }
 
@@ -286,28 +340,28 @@ function App() {
     }
   }
 
-  const parseCSVIntoChartData = (csvFile: unknown) => {
+  const parseCSVIntoChartData = (csvFile: Promise<string | undefined>) => {
     Papa.parse(csvFile, {
-      complete: function(results: unknown) {
+      complete: function(results: ResultsIF) {
         results.data.shift();
-        const localDistanceTrendsRow: {date: string, distance: number}[] = [];
-        const localPaceTrendsRow: {date: string, pace: number}[] = [];
+        const localDistanceTrendsRow: DateAndDistanceIF[] = [];
+        const localPaceTrendsRow: DateAndPaceIF[] = [];
 
-        const localDistanceTrendsBike: {date: string, distance: number}[] = [];
-        const localPaceTrendsBike: {date: string, pace: number}[] = [];
+        const localDistanceTrendsBike: DateAndDistanceIF[] = [];
+        const localPaceTrendsBike: DateAndPaceIF[] = [];
 
-        const localBests = {};
+        const localBests: LocalBests = {};
 
         // get all the row data line by line from the csv
-        const allRowData = _.chain(results.data)
+        const allRowData: ParsedCSVRowDataIF[] = _.chain(results.data)
           .filter((row: (string|number)[]) => row.length > 1)
           .orderBy((row: (string|number)[]) => row[1]) // date
           .map((row: (string|number)[]) => {
-            const ergType = String(row[19]).charAt(0).toLowerCase() + String(row[19]).slice(1);
+            const ergType = String(row[19]).charAt(0).toLowerCase() + String(row[19]).slice(1) as "bikeErg" | "rowErg" | "skiErg";
             updateUsersErgEquipmentTypes(ergType);
 
             // rowData from the CSV
-            const parsedCSVRowData = {
+            const parsedCSVRowData: ParsedCSVRowDataIF = {
               dateRaw: String(row[1]),
               date: getFormattedDate(String(row[1])),
               startTime: getFormattedTime(String(row[1])),
@@ -316,8 +370,8 @@ function App() {
               pace: String(row[11]), // example: 2:37.4
               workTime: getFormattedDuration(Number(row[4])),
               restTime: getFormattedDuration(Number(row[6])),
-              workDistance: getFormattedDistance(row[7]),
-              restDistance: getFormattedDistance(row[8]),
+              workDistance: getFormattedDistance(row[7] as string),
+              restDistance: getFormattedDistance(row[8] as string),
               strokeRate: Number(row[9]),
               strokeCount: Number(row[10]),
               totalCal: `${row[14]} (${row[13]} cal/hr)`,
@@ -330,6 +384,8 @@ function App() {
             // build "bests" data object
             const monthIdx = getMonthNumber(parsedCSVRowData.date)-1;
             const monthName = MONTH_NAMES[monthIdx];
+
+            // there is no data for this month - create it
             if (localBests[monthName] === undefined) {
               localBests[monthName] = {
                 name: monthName,
@@ -337,28 +393,31 @@ function App() {
                 rowErg: _.cloneDeep(DEFAULT_RECORD_DATA),
                 bikeErg: _.cloneDeep(DEFAULT_RECORD_DATA),
                 skiErg: _.cloneDeep(DEFAULT_RECORD_DATA),
-              };
+              } as const;
             }
 
-            // Update best distance, if better
-            if (parsedCSVRowData.workDistance > Number(localBests[monthName][ergType].bestDistance.value)) {
-              localBests[monthName][ergType].bestDistance.value = parsedCSVRowData.workDistance;
-              localBests[monthName][ergType].bestDistance.date = parsedCSVRowData.date;
-              localBests[monthName][ergType].bestDistance.workoutId = parsedCSVRowData.id;
-            }
+            const localErgType = localBests?.[monthName]?.[ergType];
+            if (localErgType) {
+              // Update best distance, if better
+              if (parsedCSVRowData.workDistance > Number(localErgType.bestDistance.value ?? 0)) {
+                localErgType.bestDistance.value = parsedCSVRowData.workDistance;
+                localErgType.bestDistance.date = parsedCSVRowData.date;
+                localErgType.bestDistance.workoutId = parsedCSVRowData.id;
+              }
 
-            // Update best pace, if better
-            if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localBests[monthName][ergType].bestPace.value))) {
-              localBests[monthName][ergType].bestPace.value = parsedCSVRowData.pace;
-              localBests[monthName][ergType].bestPace.date = parsedCSVRowData.date;
-              localBests[monthName][ergType].bestPace.workoutId = parsedCSVRowData.id;
-            }
+              // Update best pace, if better
+              if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localErgType.bestPace.value))) {
+                localErgType.bestPace.value = parsedCSVRowData.pace;
+                localErgType.bestPace.date = parsedCSVRowData.date;
+                localErgType.bestPace.workoutId = parsedCSVRowData.id;
+              }
 
-            // Update best strokeRate, if better
-            if (parsedCSVRowData.strokeRate > Number(localBests[monthName][ergType].bestStroke.value)) {
-              localBests[monthName][ergType].bestStroke.value = parsedCSVRowData.strokeRate;
-              localBests[monthName][ergType].bestStroke.date = parsedCSVRowData.date;
-              localBests[monthName][ergType].bestStroke.workoutId = parsedCSVRowData.id;
+              // Update best strokeRate, if better
+              if (parsedCSVRowData.strokeRate > Number(localErgType.bestStroke.value)) {
+                localErgType.bestStroke.value = parsedCSVRowData.strokeRate;
+                localErgType.bestStroke.date = parsedCSVRowData.date;
+                localErgType.bestStroke.workoutId = parsedCSVRowData.id;
+              }
             }
 
             // add to "distanceTrends" object
@@ -372,7 +431,6 @@ function App() {
               localDistanceTrendsBike.push(newDistance);
             }
 
-
             // add to "paceTrends" object
             const newPace: {date: string, pace: number} = {
               date: parsedCSVRowData.date,
@@ -383,7 +441,6 @@ function App() {
             } else {
               localPaceTrendsBike.push(newPace);
             }
-
 
             return parsedCSVRowData;
         }).value();
@@ -456,7 +513,7 @@ function App() {
         wrap="wrap"
         className={"filter-data"}
       >
-        <form onSubmit={handleSubmit(onSubmitFiltersForm)}>
+        <form onSubmit={handleSubmit(_.noop)}>
           <DateInput value={startDate} onChange={() => setStartDate} label={"Start"} valueFormat={DATE_FORMAT}/>
           <DateInput value={endDate} onChange={() => setEndDate} label={"End"} valueFormat={DATE_FORMAT}/>
 
