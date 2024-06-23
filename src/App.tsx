@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, FormEvent} from 'react';
 import './App.css'
 import '@mantine/core/styles.css';
 import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect, Radio, RadioGroup} from '@mantine/core';
@@ -9,8 +9,8 @@ import { AgGridReact } from 'ag-grid-react'; // AG Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
 import { useForm } from 'react-hook-form';
-import Papa from 'papaparse';
-import {ColDef, GridOptions, ICellRendererParams} from 'ag-grid-community';
+import Papa, {ParseResult} from 'papaparse';
+import {ColDef, ColGroupDef, GridOptions, ICellRendererParams} from 'ag-grid-community';
 import _ from 'lodash';
 import {
   formatMillisecondsToTimestamp,
@@ -21,58 +21,62 @@ import {
   getMonthNumber, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
 import {MonthCards} from "./components/MonthCards";
-import {BestDataIF, RowIF, WorkoutDataType, DisplayRowType, ErgType} from "./types/types.ts";
+import {
+  BestDataIF,
+  RowIF,
+  WorkoutDataType,
+  ErgType,
+  ParsedCSVRowDataIF,
+  DateAndDistanceIF,
+  DateAndPaceIF, LocalBests
+} from "./types/types.ts";
 import {BarChartComponent} from "./components/BarChartComponent.tsx";
 import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "./consts/consts.ts";
 
 const csvFile = '/concept2-season-2024.csv';
+const UPLOAD_MODE = false;
 
-interface ParsedCSVRowDataIF {
-  dateRaw: string;
-  date: string;
-  startTime: string;
-  type: ErgType;
-  description: string;
-  pace: string;
-  workTime: string;
-  restTime: string;
-  workDistance: number;
-  restDistance: number;
-  strokeRate: number;
-  strokeCount: number;
-  totalCal: string;
-  avgHeartRate: number;
-  dragFactor: number;
-  ranked: boolean;
-  id: string;
-}
-
-interface MonthDataIF {
-  name: string,
-  year: number,
-  rowErg: BestDataIF,
-  bikeErg: BestDataIF,
-  skiErg: BestDataIF,
-}
-type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
-type LocalBests = {
-  [key in Months]?: MonthDataIF;
-};
-
-
-interface ResultsIF {
-  data: [];
-}
-
-interface DateAndDistanceIF {
-  date: string;
-  distance: number;
-}
-
-interface DateAndPaceIF {
-  date: string,
-  pace: number
-}
+// interface ParsedCSVRowDataIF {
+//   dateRaw: string;
+//   date: string;
+//   startTime: string;
+//   type: ErgType;
+//   description: string;
+//   pace: string;
+//   workTime: string;
+//   restTime: string;
+//   workDistance: number;
+//   restDistance: number;
+//   strokeRate: number;
+//   strokeCount: number;
+//   totalCal: string;
+//   avgHeartRate: number;
+//   dragFactor: number;
+//   ranked: boolean;
+//   id: string;
+// }
+//
+// interface MonthDataIF {
+//   name: string,
+//   year: number,
+//   rowErg: BestDataIF,
+//   bikeErg: BestDataIF,
+//   skiErg: BestDataIF,
+// }
+// type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
+// type LocalBests = {
+//   [key in Months]?: MonthDataIF;
+// };
+//
+// interface DateAndDistanceIF {
+//   date: string;
+//   distance: number;
+// }
+//
+// interface DateAndPaceIF {
+//   date: string,
+//   pace: number
+// }
 
 function getColorForErgType(ergType: string) {
   switch (ergType) {
@@ -93,7 +97,7 @@ const ergTypeCellRenderer = (params: ICellRendererParams) => {
 }
 
 const distanceCellRenderer = (params: ICellRendererParams<RowIF>) => {
-  return getFormattedDistanceString(params['valueFormatted']);
+  return getFormattedDistanceString(params['valueFormatted'] ?? undefined);
 }
 
 const numberCellRenderer = (params: ICellRendererParams<RowIF>) => {
@@ -196,7 +200,7 @@ function App() {
   const getFilteredRows = () => {
     const copy = _.cloneDeep(unfilteredRowData);
     if (copy && copy.length) {
-      return copy.filter((row: DisplayRowType) => {
+      return copy.filter((row: ParsedCSVRowDataIF) => {
         if (!includeBike && row.type === 'bikeErg') {
           return;
         }
@@ -214,6 +218,8 @@ function App() {
 
         return row;
       })
+    } else {
+      return [];
     }
   }
 
@@ -267,9 +273,9 @@ function App() {
   const [includeDragFactor, setIncludeDragFactor] = useState(false);
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<ColDef[]>(getFilteredColumns());
+  const [colDefs, setColDefs] = useState<(ColDef | ColGroupDef)[]>(getFilteredColumns());
   const [unfilteredRowData, setUnfilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
-  const [filteredRowData, setFilteredRowData] = useState([]);
+  const [filteredRowData, setFilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
   const [bests, setBests] = useState({});
 
   const [distanceTrendsRow, setDistanceTrendsRow] = useState<DateAndDistanceIF[]>([]);
@@ -280,12 +286,17 @@ function App() {
 
   const [chartErgType, setChartErgType] = useState("rowErg");
 
-  const getData = () => {
-    parseCSVIntoChartData(fetchLocalCSVFile())
-  }
-
   useEffect(() => {
-    void getData();
+    const fetchData = async () => {
+      if (!UPLOAD_MODE) {
+        const localFile = await fetchLocalCSVFile();
+        if (localFile) {
+          setFile(localFile);
+          await parseCSVIntoChartData();
+        }
+      }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -296,7 +307,7 @@ function App() {
     setFilteredRowData(getFilteredRows());
   }, [unfilteredRowData, includeBike, includeRower, startDate, endDate])
 
-  const fetchLocalCSVFile = async () => {
+  const fetchLocalCSVFile = async (): Promise<File | undefined> => {
     try {
       const response = await fetch(csvFile);
 
@@ -304,17 +315,11 @@ function App() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (!response.body) {
-        throw new Error('ReadableStream not supported or response body is null');
-      }
-
-      const reader = response.body.getReader();
-      const result = await reader.read();
-      const decoder = new TextDecoder('utf-8');
-      const csv = decoder.decode(result.value);
-      return csv;
-    } catch(e) {
+      const blob = await response.blob();
+      return new File([blob], "local.csv", { type: blob.type });
+    } catch (e) {
       console.log(e);
+      return undefined;
     }
   }
 
@@ -327,22 +332,24 @@ function App() {
   }
 
   const updateUsersErgEquipmentTypes = (ergType: string) => {
-    if (!hasRowErg && ergType === 'rowErg') {
-      setHasRowErg(true);
-    }
-
-    if (!hasBikeErg && ergType === 'bikeErg') {
-      setHasBikeErg(true);
-    }
-
-    if (!hasSkiErg && ergType === 'skiErg') {
-      setHasSkiErg(true);
-    }
+    setHasRowErg(ergType === 'rowErg');
+    setHasBikeErg(ergType === 'bikeErg');
+    setHasSkiErg(ergType === 'skiErg');
   }
 
-  const parseCSVIntoChartData = (csvFile: Promise<string | undefined>) => {
-    Papa.parse(csvFile, {
-      complete: function(results: ResultsIF) {
+  const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await parseCSVIntoChartData();
+  }
+
+  const parseCSVIntoChartData = async () => {
+    if (!file) {
+      console.error('No file selected');
+      return;
+    }
+
+    Papa.parse(file, {
+      complete: function(results: ParseResult<string[]>) {
         results.data.shift();
         const localDistanceTrendsRow: DateAndDistanceIF[] = [];
         const localPaceTrendsRow: DateAndPaceIF[] = [];
@@ -456,7 +463,7 @@ function App() {
   }
 
   const UploadFile = () => (
-    <form onSubmit={parseCSVIntoChartData}>
+    <form onSubmit={handleFormSubmit}>
       <Flex
         className={"upload-file pad-bottom pad-right"}
         mih={90}
@@ -562,8 +569,13 @@ function App() {
         'backgroundColor': '#003A70',
         'color': '#F4F8F5'
       };
+    } else {
+      // ski erg
+      return {
+        'backgroundColor': '#7e6b73',
+        'color': '#F4F8F5'
+      };
     }
-    return null;
   }
 
   const ResultsTable = () => (

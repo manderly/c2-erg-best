@@ -6,34 +6,50 @@ export type DisplayRowType = {
   type: string,
 }
 
+export interface ParsedCSVRowDataIF {
+  dateRaw: string;
+  date: string;
+  startTime: string;
+  type: ErgType;
+  description: string;
+  pace: string;
+  workTime: string;
+  restTime: string;
+  workDistance: number;
+  restDistance: number;
+  strokeRate: number;
+  strokeCount: number;
+  totalCal: string;
+  avgHeartRate: number;
+  dragFactor: number;
+  ranked: boolean;
+  id: string;
+}
+
+export interface MonthDataIF {
+  name: string,
+  year: number,
+  rowErg: BestDataIF,
+  bikeErg: BestDataIF,
+  skiErg: BestDataIF,
+}
+export type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
+export type LocalBests = {
+  [key in Months]?: MonthDataIF;
+};
+
+export interface DateAndDistanceIF {
+  date: string;
+  distance: number;
+}
+
+export interface DateAndPaceIF {
+  date: string,
+  pace: number
+}
+
 export type WorkoutDataType = {
   data: DisplayRowType,
-}
-
-export type WorkoutRowType = {
-  dateRaw: string,
-  date: string,
-  startTime: string,
-  type: string,
-  description: string,
-  pace: string,
-  workTime: string,
-  restTime: string,
-  workDistance: number,
-  restDistance: number,
-  strokeRate: number,
-  strokeCount: number,
-  totalCal: string,
-  avgHeartRate: number,
-  dragFactor: number,
-  ranked: boolean,
-  id: string,
-}
-
-export interface RowData {
-  distance: number;
-  pace: string;
-  strokeRate: number;
 }
 
 export interface BestIF {

@@ -10,13 +10,22 @@ interface MonthCardsIF {
   hasSkiErg: boolean,
 }
 
-const ViewWorkoutLink = (id: string) => (
+interface ViewWorkoutLinkIF {
+  id: string;
+}
+
+const ViewWorkoutLink = ({ id }: ViewWorkoutLinkIF) => (
   <div className='pull-right'>
     <a className={'view-workout-link'} href={id}>View workout</a>
   </div>
 );
 
-const DisplayBestPace = ({data, distanceUnits}) => (
+interface DisplayBestPaceIF {
+  data: BestIF;
+  distanceUnits: string;
+}
+
+const DisplayBestPace = ({data, distanceUnits}: DisplayBestPaceIF) => (
   <div className={'best-data'}>
   <Flex justify="space-between">
     <strong>Pace</strong>
@@ -28,7 +37,11 @@ const DisplayBestPace = ({data, distanceUnits}) => (
   </div>
 )
 
-const DisplayBestDistance = ({data}) => (
+interface DisplayBestDistanceIF {
+  data: BestIF;
+}
+
+const DisplayBestDistance = ({data}: DisplayBestDistanceIF) => (
   <div className={'best-data'}>
     <Flex justify="space-between">
       <strong>Distance</strong>
@@ -40,7 +53,12 @@ const DisplayBestDistance = ({data}) => (
   </div>
 )
 
-const DisplayBestStroke = ({data, strokeUnits}) => (
+interface DisplayBestStrokeIF {
+  data: BestIF;
+  strokeUnits: string;
+}
+
+const DisplayBestStroke = ({data, strokeUnits}: DisplayBestStrokeIF) => (
   <div className={'best-data'}>
     <Flex justify="space-between">
       <strong>Stroke</strong>

@@ -39,7 +39,7 @@ export const getFormattedDistance = (item: string): number => {
   return item ? Number(item) : 0;
 }
 
-export const getFormattedDistanceString = (item: string): string => {
+export const getFormattedDistanceString = (item: string | number | undefined): string => {
   if (!item) {
     return '--';
   }
@@ -64,7 +64,10 @@ export const parseTimeToMilliseconds = (timeString: string): number => {
   return resultDate.getTime();
 }
 
-export const formatMillisecondsToTimestamp = (milliseconds: number): string => {
+export const formatMillisecondsToTimestamp = (milliseconds: number | string | undefined): string => {
+  if (milliseconds === undefined || typeof milliseconds !== 'number') {
+    return 'timestamp undefined';
+  }
   // Create a Date object from milliseconds
   const date = new Date(milliseconds);
 
