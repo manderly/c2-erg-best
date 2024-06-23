@@ -1,7 +1,7 @@
 import {Card, Divider, Flex} from "@mantine/core";
 import {getFormattedDistanceString, isCurrentMonth} from "../services/formatting_utils";
 import _ from 'lodash';
-import {BestDataIF, BestIF, BestMonthIF} from "../types/types.ts";
+import {BestDataForErgIF, BestWorkoutInCategoryIF, BestMonthIF} from "../types/types.ts";
 
 interface MonthCardsIF {
   bests: object,
@@ -21,7 +21,7 @@ const ViewWorkoutLink = ({ id }: ViewWorkoutLinkIF) => (
 );
 
 interface DisplayBestPaceIF {
-  data: BestIF;
+  data: BestWorkoutInCategoryIF;
   distanceUnits: string;
 }
 
@@ -38,7 +38,7 @@ const DisplayBestPace = ({data, distanceUnits}: DisplayBestPaceIF) => (
 )
 
 interface DisplayBestDistanceIF {
-  data: BestIF;
+  data: BestWorkoutInCategoryIF;
 }
 
 const DisplayBestDistance = ({data}: DisplayBestDistanceIF) => (
@@ -54,7 +54,7 @@ const DisplayBestDistance = ({data}: DisplayBestDistanceIF) => (
 )
 
 interface DisplayBestStrokeIF {
-  data: BestIF;
+  data: BestWorkoutInCategoryIF;
   strokeUnits: string;
 }
 
@@ -73,7 +73,7 @@ const DisplayBestStroke = ({data, strokeUnits}: DisplayBestStrokeIF) => (
 
 interface ErgDataIF {
   label: string,
-  data: BestDataIF,
+  data: BestDataForErgIF,
   distanceUnits?: string,
   strokeUnits?: string,
 }

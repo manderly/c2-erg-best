@@ -22,7 +22,7 @@ import {
 } from "./services/formatting_utils";
 import {MonthCards} from "./components/MonthCards";
 import {
-  BestDataIF,
+  BestDataForErgIF,
   RowIF,
   WorkoutDataType,
   ErgType,
@@ -175,7 +175,7 @@ const ALL_COLUMNS = [
   {field: 'ranked', flex: 1},
 ];
 
-const DEFAULT_RECORD_DATA: BestDataIF = {
+const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   bestDistance: {
     value: 0,
     date: '',

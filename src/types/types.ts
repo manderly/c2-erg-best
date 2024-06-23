@@ -29,9 +29,9 @@ export interface ParsedCSVRowDataIF {
 export interface MonthDataIF {
   name: string,
   year: number,
-  rowErg: BestDataIF,
-  bikeErg: BestDataIF,
-  skiErg: BestDataIF,
+  rowErg: BestDataForErgIF,
+  bikeErg: BestDataForErgIF,
+  skiErg: BestDataForErgIF,
 }
 export type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
 export type LocalBests = {
@@ -52,24 +52,24 @@ export type WorkoutDataType = {
   data: DisplayRowType,
 }
 
-export interface BestIF {
+export interface BestWorkoutInCategoryIF {
   value: number | string;
   date: string;
   workoutId: string;
 }
 
-export interface BestDataIF {
-  bestDistance: BestIF;
-  bestPace: BestIF;
-  bestStroke: BestIF;
+export interface BestDataForErgIF {
+  bestDistance: BestWorkoutInCategoryIF;
+  bestPace: BestWorkoutInCategoryIF;
+  bestStroke: BestWorkoutInCategoryIF;
 }
 
 export interface BestMonthIF {
   name: string;
   year: number;
-  rowErg: BestDataIF;
-  bikeErg: BestDataIF;
-  skiErg: BestDataIF;
+  rowErg: BestDataForErgIF;
+  bikeErg: BestDataForErgIF;
+  skiErg: BestDataForErgIF;
 }
 
 export interface RowIF { // ag-grid row, not erg row
