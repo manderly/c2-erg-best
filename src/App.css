@@ -140,3 +140,7 @@ h2, h3, h4 {
 .radio-group .mantine-Radio-label {
   padding-left:1px !important;
 }
+
+.no-data-div {
+  margin-top:10px;
+}
