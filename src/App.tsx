@@ -33,7 +33,7 @@ import {
 import {BarChartComponent} from "./components/BarChartComponent.tsx";
 import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "./consts/consts.ts";
 
-const csvFile = '/concept2-season-2024.csv';
+const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
 const TEST_MODE = true;
 
 function getColorForErgType(ergType: string) {
@@ -238,19 +238,20 @@ function App() {
 
   const [distanceTrendsRow, setDistanceTrendsRow] = useState<DateAndDistanceIF[]>([]);
   const [distanceTrendsBike, setDistanceTrendsBike] = useState<DateAndDistanceIF[]>([]);
+  const [distanceTrendsSki, setDistanceTrendsSki] = useState<DateAndDistanceIF[]>([]);
 
   const [paceTrendsRow, setPaceTrendsRow] = useState<DateAndPaceIF[]>([]);
   const [paceTrendsBike, setPaceTrendsBike] = useState<DateAndPaceIF[]>([]);
+  const [paceTrendsSki, setPaceTrendsSki] = useState<DateAndPaceIF[]>([]);
 
   const [chartErgType, setChartErgType] = useState("rowErg");
 
   useEffect(() => {
     if (TEST_MODE) { // use sample data (my own) to populate the page
-      fetchLocalCSVFile().then((file: File | null) => {
-        const data = parseCSVIntoChartData(file);
-        console.log("parseCSVIntoChartData shouldn't return anything yet here it is:")
-        console.log(data);
-      });
+      _.forEach(csvFiles, (fileName) =>
+        fetchLocalCSVFile(fileName).then((file: File | null) => {
+          parseCSVIntoChartData(file);
+        }));
     } else {
       console.log("Waiting for file upload")
     }
@@ -264,9 +265,9 @@ function App() {
     setFilteredRowData(getFilteredRows());
   }, [unfilteredRowData, includeBike, includeRower, startDate, endDate])
 
-  const fetchLocalCSVFile = async (): Promise<File | null> => {
+  const fetchLocalCSVFile = async (fileName: string): Promise<File | null> => {
     try {
-      const response = await fetch(csvFile);
+      const response = await fetch(fileName);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -290,27 +291,29 @@ function App() {
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await parseCSVIntoChartData(file);
+    parseCSVIntoChartData(file);
   }
 
-  const parseCSVIntoChartData = async (file: File | null) => {
+  const localDistanceTrendsRow: DateAndDistanceIF[] = [];
+  const localPaceTrendsRow: DateAndPaceIF[] = [];
+
+  const localDistanceTrendsBike: DateAndDistanceIF[] = [];
+  const localPaceTrendsBike: DateAndPaceIF[] = [];
+
+  const localDistanceTrendsSki: DateAndDistanceIF[] = [];
+  const localPaceTrendsSki: DateAndPaceIF[] = [];
+
+  const combinedUnfilteredRowData: ParsedCSVRowDataIF[] = [];
+  const localBests: LocalBests = {};
+
+  const parseCSVIntoChartData = (file: File | null) => {
     if (file) {
       Papa.parse(file, {
         complete: function (results: ParseResult<string[]>) {
           results.data.shift();
-          const localDistanceTrendsRow: DateAndDistanceIF[] = [];
-          const localPaceTrendsRow: DateAndPaceIF[] = [];
-
-          const localDistanceTrendsBike: DateAndDistanceIF[] = [];
-          const localPaceTrendsBike: DateAndPaceIF[] = [];
-
-          const localDistanceTrendsSki: DateAndDistanceIF[] = [];
-          const localPaceTrendsSki: DateAndPaceIF[] = [];
-
-          const localBests: LocalBests = {};
 
           // get all the row data line by line from the csv
-          const allRowData: ParsedCSVRowDataIF[] = _.chain(results.data)
+          _.chain(results.data)
             .filter((row: (string | number)[]) => row.length > 1)
             .orderBy((row: (string | number)[]) => row[1]) // date
             .map((row: (string | number)[]) => {
@@ -402,15 +405,21 @@ function App() {
                 console.log("Unsupported erg type found")
               }
 
+              combinedUnfilteredRowData.push(parsedCSVRowData);
               return parsedCSVRowData;
             }).value();
 
           setBests(localBests);
+
           setDistanceTrendsRow(localDistanceTrendsRow);
           setDistanceTrendsBike(localDistanceTrendsBike);
+          setDistanceTrendsSki(localDistanceTrendsSki);
+
           setPaceTrendsRow(localPaceTrendsRow);
           setPaceTrendsBike(localPaceTrendsBike);
-          setUnfilteredRowData(allRowData);
+          setPaceTrendsSki(localPaceTrendsSki);
+
+          setUnfilteredRowData(combinedUnfilteredRowData);
         }
       });
     } else {
@@ -567,7 +576,7 @@ function App() {
 
             {filteredRowData.length > 0 &&
                 <>
-                  <p>You completed {unfilteredRowData.length} workouts this season 🥇</p>
+                  <p>You completed {unfilteredRowData.length} workouts this year 🥇</p>
 
                   <Flex
                     mih={600}
@@ -581,23 +590,34 @@ function App() {
                   </Flex>
 
                   <br/>
-                  <h2 className={'main-page-title'}>Trends for: {chartErgType}</h2>
-                  <RadioGroup value={chartErgType} onChange={handleChartErgTypeRadio}>
-                  {hasRowErg && <Radio value="rowErg" label="RowErg" className={"mb-10"}/>}
-                  {hasBikeErg && <Radio value="bikeErg" label="BikeErg" className={"mb-10"}/>}
-                  {hasSkiErg && <Radio value="skiErg" label="SkiErg"/>}
-                </RadioGroup>
-
+                  <div className={"radio-group-inline"}>
+                    <h2>Trends for </h2>
+                    <RadioGroup value={chartErgType} onChange={handleChartErgTypeRadio} className="radio-group">
+                      <div><Radio disabled={!hasRowErg} value="rowErg" label="RowErg"/></div>
+                      <div><Radio disabled={!hasBikeErg} value="bikeErg" label="BikeErg"/></div>
+                      <div><Radio disabled={!hasSkiErg} value="skiErg" label="SkiErg"/></div>
+                    </RadioGroup>
+                  </div>
                   <BarChartComponent
                     title={"Distance"}
-                    data={chartErgType === 'rowErg' ? distanceTrendsRow : distanceTrendsBike}
+                    data={
+                      chartErgType === 'rowErg' ? distanceTrendsRow :
+                        chartErgType === 'bikeErg' ? distanceTrendsBike :
+                          chartErgType === 'skiErg' ? distanceTrendsSki :
+                            []
+                    }
                     dataKey={"distance"}
                     hexFill={getColorForErgType(chartErgType)}
                     tickFormatter={getFormattedDistanceString}
                   />
                   <BarChartComponent
                     title={"Pace"}
-                    data={chartErgType === 'rowErg' ? paceTrendsRow : paceTrendsBike}
+                    data={
+                      chartErgType === 'rowErg' ? paceTrendsRow :
+                        chartErgType === 'bikeErg' ? paceTrendsBike :
+                          chartErgType === 'skiErg' ? paceTrendsSki :
+                            []
+                    }
                     dataKey={"pace"}
                     hexFill={getColorForErgType(chartErgType)}
                     tickFormatter={formatMillisecondsToTimestamp}

@@ -115,3 +115,28 @@ h2, h3, h4 {
   padding-left:15px;
   color: #6690BB;
 }
+
+.radio-group-inline {
+  display: flex;
+  align-items: center;
+}
+
+.radio-group-inline .mb-10 {
+  margin-bottom: 0; /* Override the existing mb-10 class if necessary */
+  margin-right: 10px; /* Add some space between the radio buttons */
+}
+
+.radio-group {
+  display: flex;
+  gap: 5px; /* Adjust spacing between radio buttons as needed */
+}
+
+.radio-group div {
+  display: flex;
+  align-items: start;
+  margin-left:5px;
+}
+
+.radio-group .mantine-Radio-label {
+  padding-left:1px !important;
+}
