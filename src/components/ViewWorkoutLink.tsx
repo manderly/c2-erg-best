@@ -7,7 +7,7 @@ interface ViewWorkoutLinkIF {
 const ViewWorkoutLink: React.FC<ViewWorkoutLinkIF> = ({ id }) => {
   return (
     <div className='pull-right'>
-      <a className={'view-workout-link'} href={id}>View workout</a>
+      <a className={'view-workout-link'} href={id}>...</a>
     </div>
   );
 };

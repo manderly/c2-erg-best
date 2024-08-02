@@ -11,7 +11,7 @@ interface ErgDataIF {
   strokeUnits?: string,
 }
 export const ErgData: React.FC<ErgDataIF> = ({label, data, distanceUnits = '500', strokeUnits = 'per min.' }) => {
-  return <>
+  return <div className={`erg-data-bg erg-data-bg-${label}`}>
     {data && <>
         <strong className={`erg-type-label ${label}-label`}>{label}</strong>
         {data.bestPace.value === '999:00.0' && <div className="no-data-div">No data</div>}
@@ -24,5 +24,5 @@ export const ErgData: React.FC<ErgDataIF> = ({label, data, distanceUnits = '500'
         }
     </>
     }
-  </>
+  </div>
 }

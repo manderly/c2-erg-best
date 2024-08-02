@@ -55,7 +55,7 @@ h2, h3, h4 {
 }
 
 .month-card {
-  width:24%;
+  width:16%;
   border:1px solid #324d67;
   background-color: #002142 !important;
 }
@@ -143,4 +143,21 @@ h2, h3, h4 {
 
 .no-data-div {
   margin-top:10px;
+}
+
+.erg-data-bg {
+  padding: 3px 1em 1em 1em;
+  margin-bottom: 1em;
+}
+
+.erg-data-bg-RowErg {
+  border: 1px solid #afbd22;
+}
+
+.erg-data-bg-BikeErg {
+  border: 1px solid #B6C7D9;
+}
+
+.erg-data-bg-SkiErg {
+  border: 1px solid #DC3E26;
 }

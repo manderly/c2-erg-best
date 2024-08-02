@@ -12,7 +12,7 @@ const DisplayBestDistance: React.FC<DisplayBestDistanceIF> = ({ data }) => {
   return (
     <div className={'best-data'}>
       <Flex justify="space-between">
-        <strong>Distance</strong>
+        <strong>Best Distance</strong>
         <ViewWorkoutLink id={data.workoutId} />
       </Flex>
       <Divider />

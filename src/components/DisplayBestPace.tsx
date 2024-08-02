@@ -12,7 +12,7 @@ const DisplayBestPace: React.FC<DisplayBestPaceIF> = ({ data, distanceUnits }) =
   return (
     <div className={'best-data'}>
       <Flex justify="space-between">
-        <strong>Pace</strong>
+        <strong>Best Pace</strong>
         <ViewWorkoutLink id={data.workoutId} />
       </Flex>
       <Divider />
