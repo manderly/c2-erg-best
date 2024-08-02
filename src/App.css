@@ -7,7 +7,7 @@ a {
   color: #7f99b2 !important;
 }
 
-.app-title {
+.app-title h2 {
   color: #6690BB;
   font-size: 2.6em;
 }
@@ -42,10 +42,6 @@ h2, h3, h4 {
   border-left:1px solid blue;
 }
 
-.card {
-  padding: 2em;
-}
-
 .upload-file {
   width:100%;
 }
@@ -58,6 +54,16 @@ h2, h3, h4 {
   width:16%;
   border:1px solid #324d67;
   background-color: #002142 !important;
+  padding:12px 16px !important;
+}
+
+.month-card-title {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: space-between;
 }
 
 .current-month {
@@ -114,6 +120,15 @@ h2, h3, h4 {
   width:100%;
   padding-left:15px;
   color: #6690BB;
+}
+
+.month-name {
+  font-weight: bold;
+  font-size:22px;
+}
+
+.year-name {
+  font-size:14px;
 }
 
 .radio-group-inline {
@@ -183,5 +198,31 @@ h2, h3, h4 {
 
 .day-label {
   font-size:0.6em;
-  color: #7f99b2;
+  color:#7f99b2;
+}
+
+@media only screen and (max-width: 900px) {
+  .app-title {
+    width:100%;
+    display:block;
+    padding-top:12px;
+  }
+
+  .app-title h2 {
+    color:#6690BB;
+    font-size:1.5em;
+  }
+
+  .upload-file {
+    width:100%;
+    display:block;
+  }
+
+  .month-card {
+    width:100%;
+    display:block;
+    border:1px solid #324d67;
+    background-color: #002142 !important;
+  }
+
 }

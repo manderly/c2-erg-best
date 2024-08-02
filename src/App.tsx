@@ -454,10 +454,10 @@ function App() {
   const UploadFile = () => (
     <form onSubmit={handleFormSubmit}>
       <Flex
-        className={"upload-file pad-bottom pad-right"}
+        className="upload-file pad-bottom pad-right"
         mih={90}
         gap="md"
-        justify="flex-end"
+        justify="flex-start"
         align="flex-end"
         direction="row"
         wrap="wrap">
@@ -588,10 +588,10 @@ function App() {
 
         <Grid className={"pad-left pad-right"}>
           <Grid.Col span={12}>
-            <Flex justify="space-between" className={"pad-top"}>
-              <h2 className={"app-title"}>C2 Erg Bests</h2>
-              <UploadFile/>
-            </Flex>
+            <div className={"app-title"}>
+              <h2>C2 Erg Bests</h2>
+            </div>
+            <UploadFile/>
             <Divider/>
 
             {filteredRowData.length === 0 &&

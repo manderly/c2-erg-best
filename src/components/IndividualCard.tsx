@@ -13,10 +13,12 @@ interface IndividualCardIF {
 const IndividualCard: React.FC<IndividualCardIF> = ({ month, data }) => {
   return (
     <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
-      <h2>{data.name}</h2>
-      <h4 className="pad-bottom">{data.year === 0 ? 'No data yet' : data.year}</h4>
+      <div className={"month-card-title pad-bottom"}>
+        <span className={"month-name"}>{data.name}</span>
+        <span className={"year-name"}>{data.year === 0 ? 'No data yet' : data.year}</span>
+      </div>
 
-      <Calendar month={month} data={data} />
+      <Calendar month={month} data={data}/>
 
       <h5>{data.rowErgCount + data.bikeErgCount + data.skiErgCount} workouts</h5>
       {data.rowErgCount > 0 && <ErgData label="RowErg" data={data.rowErg} workoutCount={data.rowErgCount} distanceUnits="500" strokeUnits="per min" />}

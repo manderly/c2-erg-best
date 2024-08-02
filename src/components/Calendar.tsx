@@ -55,6 +55,7 @@ const Calendar: React.FC<CalendarIF> = ({month, data}) => {
 
   return (
     <table>
+      <meta name="format-detection" content="telephone=no"/>
       <tbody>
       {generateTableCells(totalCells, cellsPerRow, month, data)}
       </tbody>
