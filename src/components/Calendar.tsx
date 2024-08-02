@@ -10,8 +10,14 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
   const dayOfWeekIndex = getDay(firstOfTheMonth);
 
   const rows = [];
-  let currentDay = 1;
+  const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const labelRow = [];
+  for (let i = 0; i < dayLabels.length; i ++) {
+    labelRow.push(<td key={`label-${dayLabels[i]}-${i}`} className='center-calendar-date day-label'>{dayLabels[i]}</td>);
+  }
+  rows.push(labelRow);
 
+  let currentDay = 1;
   for (let i = 0; i < totalCells; i += cellsPerRow) {
     const row = [];
     for (let j = 0; j < cellsPerRow; j++) {
