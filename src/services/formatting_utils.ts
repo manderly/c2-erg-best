@@ -20,6 +20,10 @@ export const getFormattedDuration = (seconds: number): string => {
   return `${hr ?? '00'}:${min ?? '00'}:${sec ?? '00'}`
 }
 
+export const getDayOfMonth = (item: string): number => {
+  return item ? Number(format(new Date(item), "d")) : 0;
+}
+
 export const getFormattedDate = (item: string): string => {
   return item ? format(new Date(item), "M/d/yy") : 'not a date';
 }
@@ -77,7 +81,5 @@ export const formatMillisecondsToTimestamp = (milliseconds: number | string | un
   const millisecondsRemaining = date.getMilliseconds();
 
   // Format the timestamp string
-  const formattedTimestamp = `${minutes}:${seconds}.${millisecondsRemaining}`;
-
-  return formattedTimestamp;
+  return `${minutes}:${seconds}.${millisecondsRemaining}`;
 };

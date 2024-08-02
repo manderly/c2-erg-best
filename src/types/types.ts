@@ -9,6 +9,7 @@ export type DisplayRowType = {
 export interface ParsedCSVRowDataIF {
   dateRaw: string;
   date: string;
+  day: number;
   startTime: string;
   type: ErgType;
   description: string;
@@ -32,6 +33,12 @@ export interface MonthDataIF {
   rowErg: BestDataForErgIF,
   bikeErg: BestDataForErgIF,
   skiErg: BestDataForErgIF,
+  rowErgCount: number,
+  bikeErgCount: number,
+  skiErgCount: number,
+  rowErgDates: number[],
+  bikeErgDates: number[],
+  skiErgDates: number[],
 }
 export type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
 export type LocalBests = {
@@ -62,14 +69,6 @@ export interface BestDataForErgIF {
   bestDistance: BestWorkoutInCategoryIF;
   bestPace: BestWorkoutInCategoryIF;
   bestStroke: BestWorkoutInCategoryIF;
-}
-
-export interface BestMonthIF {
-  name: string;
-  year: number;
-  rowErg: BestDataForErgIF;
-  bikeErg: BestDataForErgIF;
-  skiErg: BestDataForErgIF;
 }
 
 export interface RowIF { // ag-grid row, not erg row

@@ -161,3 +161,22 @@ h2, h3, h4 {
 .erg-data-bg-SkiErg {
   border: 1px solid #DC3E26;
 }
+
+.center-calendar-date {
+  text-align:center;
+}
+
+.row-this-day {
+  color: black;
+  background-color: #afbd22;
+}
+
+.bike-this-day {
+  color: black;
+  background-color: #B6C7D9;
+}
+
+.ski-this-day {
+  color: black;
+  background-color: #DC3E26;
+}

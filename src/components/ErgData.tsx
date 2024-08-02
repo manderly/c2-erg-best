@@ -7,13 +7,14 @@ import React from "react";
 interface ErgDataIF {
   label: string,
   data: BestDataForErgIF,
+  workoutCount: number,
   distanceUnits?: string,
   strokeUnits?: string,
 }
-export const ErgData: React.FC<ErgDataIF> = ({label, data, distanceUnits = '500', strokeUnits = 'per min.' }) => {
+export const ErgData: React.FC<ErgDataIF> = ({label, data, workoutCount, distanceUnits = '500', strokeUnits = 'per min.' }) => {
   return <div className={`erg-data-bg erg-data-bg-${label}`}>
     {data && <>
-        <strong className={`erg-type-label ${label}-label`}>{label}</strong>
+        <strong className={`erg-type-label ${label}-label`}>{label}: {workoutCount}</strong>
         {data.bestPace.value === '999:00.0' && <div className="no-data-div">No data</div>}
         {data.bestPace.value !== '999:00.0' &&
           <ul>

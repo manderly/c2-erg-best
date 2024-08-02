@@ -13,7 +13,7 @@ import Papa, {ParseResult} from 'papaparse';
 import {ColDef, ColGroupDef, GridOptions, ICellRendererParams} from 'ag-grid-community';
 import _ from 'lodash';
 import {
-  formatMillisecondsToTimestamp,
+  formatMillisecondsToTimestamp, getDayOfMonth,
   getFormattedDate,
   getFormattedDistance, getFormattedDistanceString,
   getFormattedDuration,
@@ -323,6 +323,7 @@ function App() {
               const parsedCSVRowData: ParsedCSVRowDataIF = {
                 dateRaw: String(row[1]),
                 date: getFormattedDate(String(row[1])),
+                day: getDayOfMonth(String(row[1])),
                 startTime: getFormattedTime(String(row[1])),
                 type: ergType as ErgType,
                 description: String(row[2]),
@@ -352,6 +353,12 @@ function App() {
                   rowErg: _.cloneDeep(DEFAULT_RECORD_DATA),
                   bikeErg: _.cloneDeep(DEFAULT_RECORD_DATA),
                   skiErg: _.cloneDeep(DEFAULT_RECORD_DATA),
+                  rowErgCount: 0,
+                  bikeErgCount: 0,
+                  skiErgCount: 0,
+                  rowErgDates: _.fill(Array(32), 0),
+                  bikeErgDates: _.fill(Array(32), 0),
+                  skiErgDates: _.fill(Array(32), 0),
                 } as const;
               }
 
@@ -364,20 +371,20 @@ function App() {
                   localErgType.bestDistance.workoutId = parsedCSVRowData.id;
                 }
 
-                // Update best pace, if better
-                if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localErgType.bestPace.value))) {
-                  localErgType.bestPace.value = parsedCSVRowData.pace;
-                  localErgType.bestPace.date = parsedCSVRowData.date;
-                  localErgType.bestPace.workoutId = parsedCSVRowData.id;
-                }
+                  // Update best pace, if better
+                  if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localErgType.bestPace.value))) {
+                    localErgType.bestPace.value = parsedCSVRowData.pace;
+                    localErgType.bestPace.date = parsedCSVRowData.date;
+                    localErgType.bestPace.workoutId = parsedCSVRowData.id;
+                  }
 
-                // Update best strokeRate, if better
-                if (parsedCSVRowData.strokeRate > Number(localErgType.bestStroke.value)) {
-                  localErgType.bestStroke.value = parsedCSVRowData.strokeRate;
-                  localErgType.bestStroke.date = parsedCSVRowData.date;
-                  localErgType.bestStroke.workoutId = parsedCSVRowData.id;
+                  // Update best strokeRate, if better
+                  if (parsedCSVRowData.strokeRate > Number(localErgType.bestStroke.value)) {
+                    localErgType.bestStroke.value = parsedCSVRowData.strokeRate;
+                    localErgType.bestStroke.date = parsedCSVRowData.date;
+                    localErgType.bestStroke.workoutId = parsedCSVRowData.id;
+                  }
                 }
-              }
 
               // add to "distanceTrends" object
               const newDistance: { date: string, distance: number } = {
@@ -389,25 +396,42 @@ function App() {
                 date: parsedCSVRowData.date,
                 pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
               }
+
+              // increment workout count
+              const best = localBests[monthName];
+
               if (ergType === 'rowErg') {
                 setHasRowErg(true);
                 localDistanceTrendsRow.push(newDistance);
                 localPaceTrendsRow.push(newPace);
+                if (best?.rowErgCount !== undefined) {
+                  best.rowErgCount = best.rowErgCount + 1;
+                  best.rowErgDates[parsedCSVRowData.day] = 1;
+                }
               } else if (ergType === 'bikeErg') {
                 setHasBikeErg(true);
                 localDistanceTrendsBike.push(newDistance);
                 localPaceTrendsBike.push(newPace);
+                if (best?.bikeErgCount !== undefined) {
+                  best.bikeErgCount = best.bikeErgCount + 1;
+                  best.bikeErgDates[parsedCSVRowData.day] = 1;
+                }
               } else if (ergType === 'skiErg') {
                 setHasSkiErg(true);
                 localDistanceTrendsSki.push(newDistance);
                 localPaceTrendsSki.push(newPace);
+                if (best?.skiErgCount !== undefined) {
+                  best.skiErgCount = best.skiErgCount + 1;
+                  best.skiErgDates[parsedCSVRowData.day] = 1;
+                }
               } else {
                 console.log("Unsupported erg type found")
               }
 
-              combinedUnfilteredRowData.push(parsedCSVRowData);
-              return parsedCSVRowData;
-            }).value();
+                combinedUnfilteredRowData.push(parsedCSVRowData);
+                return parsedCSVRowData;
+              }).value();
+
 
           setBests(localBests);
 
@@ -586,7 +610,7 @@ function App() {
                     direction="row"
                     wrap="wrap"
                   >
-                    <MonthCards bests={bests} hasRowErg={hasRowErg} hasBikeErg={hasBikeErg} hasSkiErg={hasSkiErg}/>
+                    <MonthCards bests={bests}/>
                   </Flex>
 
                   <br/>
