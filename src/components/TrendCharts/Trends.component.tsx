@@ -1,9 +1,9 @@
 import {Radio, RadioGroup} from "@mantine/core";
-import {BarChartComponent} from "./BarChartComponent.tsx";
-import {formatMillisecondsToTimestamp, getFormattedDistanceString} from "../services/formatting_utils.ts";
+import {BarChartComponent} from "./BarChart.component.tsx";
+import {formatMillisecondsToTimestamp, getFormattedDistanceString} from "../../services/formatting_utils.ts";
 import {useState} from "react";
-import {TrendsDataIF} from "../types/types.ts";
-import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "../consts/consts.ts";
+import {TrendsDataIF} from "../../types/types.ts";
+import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "../../consts/consts.ts";
 
 interface TrendsComponentIF {
   hasRowErg: boolean;

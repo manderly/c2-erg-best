@@ -1,5 +1,5 @@
 import React from 'react';
-import {MonthDataIF} from "../types/types.ts";
+import {MonthDataIF} from "../../types/types.ts";
 import {parse, getDay, lastDayOfMonth, getDate} from 'date-fns';
 
 const generateTableCells = (totalCells: number, cellsPerRow: number, month: string, data: MonthDataIF) => {
@@ -47,7 +47,7 @@ interface CalendarIF {
   data: MonthDataIF;
 }
 
-const Calendar: React.FC<CalendarIF> = ({month, data}) => {
+const CalendarComponent: React.FC<CalendarIF> = ({month, data}) => {
   // Determine how many days this month should have
   const lastDayOfTheMonth = lastDayOfMonth(new Date(data.year, parseInt(month), 1));
   const totalCells = getDate(lastDayOfTheMonth);
@@ -55,7 +55,6 @@ const Calendar: React.FC<CalendarIF> = ({month, data}) => {
 
   return (
     <table>
-      <meta name="format-detection" content="telephone=no"/>
       <tbody>
       {generateTableCells(totalCells, cellsPerRow, month, data)}
       </tbody>
@@ -63,4 +62,4 @@ const Calendar: React.FC<CalendarIF> = ({month, data}) => {
   );
 };
 
-export default Calendar;
+export default CalendarComponent;

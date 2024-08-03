@@ -1,7 +1,7 @@
 import React from 'react';
-import { BestWorkoutInCategoryIF } from "../types/types";
+import { BestWorkoutInCategoryIF } from "../../types/types.ts";
 import { Divider, Flex } from "@mantine/core";
-import { getFormattedDistanceString } from '../../src/services/formatting_utils';
+import { getFormattedDistanceString } from '../../services/formatting_utils.ts';
 import ViewWorkoutLink from "./ViewWorkoutLink.tsx"; // Adjust the path as needed
 
 interface DisplayBestDistanceIF {

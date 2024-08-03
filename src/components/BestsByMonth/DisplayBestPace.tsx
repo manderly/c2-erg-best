@@ -1,7 +1,7 @@
 import React from 'react';
 import { Divider, Flex } from '@mantine/core';
-import { BestWorkoutInCategoryIF } from '../types/types';
-import ViewWorkoutLink from './ViewWorkoutLink';
+import { BestWorkoutInCategoryIF } from '../../types/types.ts';
+import ViewWorkoutLink from './ViewWorkoutLink.tsx';
 
 interface DisplayBestPaceIF {
   data: BestWorkoutInCategoryIF;

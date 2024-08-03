@@ -1,16 +1,16 @@
 import React from 'react';
 import { Card } from '@mantine/core';
-import { MonthDataIF } from '../types/types';
-import { isCurrentMonth } from '../services/formatting_utils';
-import { ErgData } from './ErgData';
-import Calendar from "./Calendar.tsx";
+import { MonthDataIF } from '../../types/types.ts';
+import { isCurrentMonth } from '../../services/formatting_utils.ts';
+import { ErgData } from './ErgData.tsx';
+import CalendarComponent from "./Calendar.component.tsx";
 
 interface IndividualCardIF {
   month: string;
   data: MonthDataIF;
 }
 
-const IndividualCard: React.FC<IndividualCardIF> = ({ month, data }) => {
+const IndividualCardComponent: React.FC<IndividualCardIF> = ({ month, data }) => {
   return (
     <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
       <div className={"month-card-title pad-bottom"}>
@@ -18,7 +18,7 @@ const IndividualCard: React.FC<IndividualCardIF> = ({ month, data }) => {
         <span className={"year-name"}>{data.year === 0 ? 'No data yet' : data.year}</span>
       </div>
 
-      <Calendar month={month} data={data}/>
+      <CalendarComponent month={month} data={data}/>
 
       <h5>{data.rowErgCount + data.bikeErgCount + data.skiErgCount} workouts</h5>
       {data.rowErgCount > 0 && <ErgData label="RowErg" data={data.rowErg} workoutCount={data.rowErgCount} distanceUnits="500" strokeUnits="per min" />}
@@ -28,4 +28,4 @@ const IndividualCard: React.FC<IndividualCardIF> = ({ month, data }) => {
   );
 };
 
-export default IndividualCard;
+export default IndividualCardComponent;

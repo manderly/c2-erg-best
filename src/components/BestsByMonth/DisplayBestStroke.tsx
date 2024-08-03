@@ -1,5 +1,5 @@
 import React from 'react';
-import { BestWorkoutInCategoryIF } from "../types/types";
+import { BestWorkoutInCategoryIF } from "../../types/types.ts";
 import { Divider, Flex } from "@mantine/core";
 import ViewWorkoutLink from "./ViewWorkoutLink.tsx";
 

@@ -1,6 +1,6 @@
 import {Flex} from "@mantine/core";
 import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import {DateAndPaceIF, DateAndDistanceIF} from "../types/types.ts";
+import {DateAndPaceIF, DateAndDistanceIF} from "../../types/types.ts";
 
 interface BarChartComponentIF {
   title: string;

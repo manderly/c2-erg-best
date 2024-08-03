@@ -1,4 +1,4 @@
-import {BestDataForErgIF} from "../types/types.ts";
+import {BestDataForErgIF} from "../../types/types.ts";
 import DisplayBestStroke from "./DisplayBestStroke.tsx";
 import DisplayBestDistance from "./DisplayBestDistance.tsx";
 import DisplayBestPace from "./DisplayBestPace.tsx";

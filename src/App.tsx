@@ -16,7 +16,7 @@ import {
   getFormattedTime,
   getMonthNumber, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
-import {MonthCards} from "./components/MonthCards";
+import {MonthCards} from "./components/BestsByMonth/MonthCards.tsx";
 import {
   BestDataForErgIF,
   ErgType,
@@ -24,8 +24,8 @@ import {
   DateAndDistanceIF,
   DateAndPaceIF, LocalBests, TrendsDataIF
 } from "./types/types.ts";
-import {TrendsComponent} from "./components/TrendsComponent.tsx";
-import {WorkoutTableComponent} from "./components/WorkoutTableComponent.tsx";
+import {TrendsComponent} from "./components/TrendCharts/Trends.component.tsx";
+import {WorkoutTableComponent} from "./components/WorkoutTable/WorkoutTable.component.tsx";
 
 const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
 const TEST_MODE = true;

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {ParsedCSVRowDataIF, RowIF, WorkoutDataType} from "../types/types.ts";
+import {ParsedCSVRowDataIF, RowIF, WorkoutDataType} from "../../types/types.ts";
 import {AgGridReact} from "ag-grid-react";
 import {Checkbox, Chip, Flex, NativeSelect} from "@mantine/core";
 import _ from "lodash";
@@ -7,7 +7,7 @@ import {DateInput} from "@mantine/dates";
 import {ColDef, ColGroupDef, GridOptions, ICellRendererParams} from "ag-grid-community";
 import {isAfter, isBefore, subDays} from "date-fns";
 import {useForm} from "react-hook-form";
-import {getFormattedDistanceString} from "../services/formatting_utils.ts";
+import {getFormattedDistanceString} from "../../services/formatting_utils.ts";
 
 interface WorkoutTableComponentIF {
   hasRowErg: boolean;
