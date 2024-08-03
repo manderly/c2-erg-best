@@ -1,7 +1,7 @@
 import {useState, useEffect, FormEvent} from 'react';
 import './App.css'
 import '@mantine/core/styles.css';
-import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect, Radio, RadioGroup} from '@mantine/core';
+import {Checkbox, Divider, FileInput, MantineProvider, NativeSelect} from '@mantine/core';
 import { Grid, Chip, Button, Flex } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import {isAfter, isBefore, subDays} from 'date-fns';
@@ -13,7 +13,7 @@ import Papa, {ParseResult} from 'papaparse';
 import {ColDef, ColGroupDef, GridOptions, ICellRendererParams} from 'ag-grid-community';
 import _ from 'lodash';
 import {
-  formatMillisecondsToTimestamp, getDayOfMonth,
+  getDayOfMonth,
   getFormattedDate,
   getFormattedDistance, getFormattedDistanceString,
   getFormattedDuration,
@@ -28,26 +28,12 @@ import {
   ErgType,
   ParsedCSVRowDataIF,
   DateAndDistanceIF,
-  DateAndPaceIF, LocalBests
+  DateAndPaceIF, LocalBests, TrendsDataIF
 } from "./types/types.ts";
-import {BarChartComponent} from "./components/BarChartComponent.tsx";
-import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "./consts/consts.ts";
+import {TrendsComponent} from "./components/TrendsComponent.tsx";
 
 const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
 const TEST_MODE = true;
-
-function getColorForErgType(ergType: string) {
-  switch (ergType) {
-    case "rowErg":
-      return ROW_ERG_COLOR; // Hex color for rowErg
-    case "bikeErg":
-      return BIKE_ERG_COLOR; // Hex color for bikeErg
-    case "skiErg":
-      return SKI_ERG_COLOR; // Hex color for skiErg
-    default:
-      return "#000000"; // Default color if ergType doesn't match any case
-  }
-}
 
 
 const ergTypeCellRenderer = (params: ICellRendererParams) => {
@@ -237,15 +223,7 @@ function App() {
   const [filteredRowData, setFilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
   const [bests, setBests] = useState({});
 
-  const [distanceTrendsRow, setDistanceTrendsRow] = useState<DateAndDistanceIF[]>([]);
-  const [distanceTrendsBike, setDistanceTrendsBike] = useState<DateAndDistanceIF[]>([]);
-  const [distanceTrendsSki, setDistanceTrendsSki] = useState<DateAndDistanceIF[]>([]);
-
-  const [paceTrendsRow, setPaceTrendsRow] = useState<DateAndPaceIF[]>([]);
-  const [paceTrendsBike, setPaceTrendsBike] = useState<DateAndPaceIF[]>([]);
-  const [paceTrendsSki, setPaceTrendsSki] = useState<DateAndPaceIF[]>([]);
-
-  const [chartErgType, setChartErgType] = useState("rowErg");
+  const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
 
   useEffect(() => {
     if (TEST_MODE) { // use sample data (my own) to populate the page
@@ -297,10 +275,6 @@ function App() {
 
   const handleCSVInput = (payload: File | null) => {
     setFile(payload);
-  }
-
-  const handleChartErgTypeRadio = (e: string) => {
-    setChartErgType(e);
   }
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -446,16 +420,19 @@ function App() {
                 return parsedCSVRowData;
               }).value();
 
-
           setBests(localBests);
-
-          setDistanceTrendsRow(localDistanceTrendsRow);
-          setDistanceTrendsBike(localDistanceTrendsBike);
-          setDistanceTrendsSki(localDistanceTrendsSki);
-
-          setPaceTrendsRow(localPaceTrendsRow);
-          setPaceTrendsBike(localPaceTrendsBike);
-          setPaceTrendsSki(localPaceTrendsSki);
+          setTrends({
+            distance: {
+              rowErg: localDistanceTrendsRow,
+              bikeErg: localDistanceTrendsBike,
+              skiErg: localDistanceTrendsSki,
+            },
+            pace: {
+              rowErg: localPaceTrendsRow,
+              bikeErg: localPaceTrendsBike,
+              skiErg: localPaceTrendsSki,
+            }
+          })
 
           setUnfilteredRowData(combinedUnfilteredRowData);
         }
@@ -616,6 +593,7 @@ function App() {
                 <>
                   <p>You completed {unfilteredRowData.length} workouts this year 🥇</p>
 
+                  {/** Month cards **/}
                   <Flex
                     mih={600}
                     gap="sm"
@@ -627,40 +605,16 @@ function App() {
                     {isDoneLoading ? <MonthCards bests={bests} /> : <>Loading...</>}
                   </Flex>
 
+                  {/** Trend charts **/}
                   <br/>
-                  <div className={"radio-group-inline"}>
-                    <h2>Trends for </h2>
-                    <RadioGroup value={chartErgType} onChange={handleChartErgTypeRadio} className="radio-group">
-                      <div><Radio disabled={!hasRowErg} value="rowErg" label="RowErg"/></div>
-                      <div><Radio disabled={!hasBikeErg} value="bikeErg" label="BikeErg"/></div>
-                      <div><Radio disabled={!hasSkiErg} value="skiErg" label="SkiErg"/></div>
-                    </RadioGroup>
-                  </div>
-                  <BarChartComponent
-                    title={"Distance"}
-                    data={
-                      chartErgType === 'rowErg' ? distanceTrendsRow :
-                        chartErgType === 'bikeErg' ? distanceTrendsBike :
-                          chartErgType === 'skiErg' ? distanceTrendsSki :
-                            []
-                    }
-                    dataKey={"distance"}
-                    hexFill={getColorForErgType(chartErgType)}
-                    tickFormatter={getFormattedDistanceString}
-                  />
-                  <BarChartComponent
-                    title={"Pace"}
-                    data={
-                      chartErgType === 'rowErg' ? paceTrendsRow :
-                        chartErgType === 'bikeErg' ? paceTrendsBike :
-                          chartErgType === 'skiErg' ? paceTrendsSki :
-                            []
-                    }
-                    dataKey={"pace"}
-                    hexFill={getColorForErgType(chartErgType)}
-                    tickFormatter={formatMillisecondsToTimestamp}
-                  />
+                  {trends !== undefined && <TrendsComponent
+                    hasRowErg={hasRowErg}
+                    hasBikeErg={hasBikeErg}
+                    hasSkiErg={hasSkiErg}
+                    trends={trends}
+                  />}
 
+                  {/** AG-grid table with workout details **/}
                   <SearchFilters/>
                   <h2 className={'main-page-title'}>Logbook</h2>
                   {filteredRowData &&

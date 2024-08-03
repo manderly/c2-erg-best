@@ -45,6 +45,19 @@ export type LocalBests = {
   [key in Months]?: MonthDataIF;
 };
 
+export interface TrendsDataIF {
+  distance: {
+    rowErg: DateAndDistanceIF[],
+    bikeErg: DateAndDistanceIF[],
+    skiErg: DateAndDistanceIF[],
+  },
+  pace: {
+    rowErg: DateAndPaceIF[],
+    bikeErg: DateAndPaceIF[],
+    skiErg: DateAndPaceIF[],
+  }
+}
+
 export interface DateAndDistanceIF {
   date: string;
   distance: number;
