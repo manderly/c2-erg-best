@@ -212,6 +212,7 @@ function App() {
   }
 
   const {  handleSubmit } = useForm();
+  const [isDoneLoading, setIsDoneLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
   const [startDate, setStartDate] = useState(subDays(new Date(), 120));
@@ -248,12 +249,25 @@ function App() {
 
   useEffect(() => {
     if (TEST_MODE) { // use sample data (my own) to populate the page
-      _.forEach(csvFiles, (fileName) =>
-        fetchLocalCSVFile(fileName).then((file: File | null) => {
-          parseCSVIntoChartData(file);
-        }));
+      const fetchData = async () => {
+        const filePromises = _.map(csvFiles, (fileName) =>
+          fetchLocalCSVFile(fileName)
+        );
+
+        const files = await Promise.all(filePromises);
+
+        files.forEach((file) => {
+          if (file) {
+            parseCSVIntoChartData(file);
+          }
+        });
+
+        setIsDoneLoading(true);
+      };
+
+      fetchData();
     } else {
-      console.log("Waiting for file upload")
+      console.log("Waiting for file upload");
     }
   }, []);
 
@@ -610,7 +624,7 @@ function App() {
                     direction="row"
                     wrap="wrap"
                   >
-                    <MonthCards bests={bests}/>
+                    {isDoneLoading ? <MonthCards bests={bests} /> : <>Loading...</>}
                   </Flex>
 
                   <br/>
