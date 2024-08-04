@@ -310,16 +310,9 @@ function App() {
             {unfilteredRowData.length > 0 && <p>You completed {unfilteredRowData.length} workouts this year 🥇</p>}
 
             {/** Month cards **/}
-            <Flex
-              mih={600}
-              gap="sm"
-              justify="flex-start"
-              align="space-between"
-              direction="row"
-              wrap="wrap"
-            >
-              {isDoneLoading ? <MonthCards bests={bests} /> : <>Loading...</>}
-            </Flex>
+            {isDoneLoading ? <MonthCards bests={bests} hasRowErg={hasRowErg}
+                                         hasBikeErg={hasBikeErg}
+                                         hasSkiErg={hasSkiErg}/> : <>Loading...</>}
 
             {/** Trend charts **/}
             <br/>

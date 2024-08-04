@@ -15,7 +15,7 @@ export const ErgData: React.FC<ErgDataIF> = ({label, data, workoutCount, distanc
   return <div className={`erg-data-bg erg-data-bg-${label}`}>
     {data && <>
         <strong className={`erg-type-label ${label}-label`}>{label}: {workoutCount}</strong>
-        {data.bestPace.value === '999:00.0' && <div className="no-data-div">No data</div>}
+        {data.bestPace.value === '999:00.0' && <div className="no-data-div">No {label} data for this month</div>}
         {data.bestPace.value !== '999:00.0' &&
           <ul>
               <li><DisplayBestPace data={data.bestPace} distanceUnits={distanceUnits}/></li>
