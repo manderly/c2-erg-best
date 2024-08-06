@@ -83,3 +83,13 @@ export const formatMillisecondsToTimestamp = (milliseconds: number | string | un
   // Format the timestamp string
   return `${minutes}:${seconds}.${millisecondsRemaining}`;
 };
+
+export const getNumberWithCommas = (input: number | string): string => {
+  const number = typeof input === 'number' ? input : parseFloat(input);
+
+  if (isNaN(number)) {
+    throw new Error('Input is not a valid number');
+  }
+
+  return number.toLocaleString('en-US');
+}

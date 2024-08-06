@@ -50,12 +50,16 @@ h2, h3, h4 {
   margin-bottom:20px;
 }
 
+.month-cards {
+  display: grid;
+  gap: 1em;
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .month-card {
-  width:16%;
+  width:100%;
   border:1px solid #324d67;
   background-color: #002142 !important;
-  padding:12px 16px !important;
-  margin-bottom:12px;
 }
 
 .month-card-title {
@@ -178,6 +182,11 @@ h2, h3, h4 {
   border: 1px solid #DC3E26;
 }
 
+.calendar {
+  width:100%;
+  font-size:12px;
+}
+
 .center-calendar-date {
   text-align:center;
 }
@@ -197,6 +206,11 @@ h2, h3, h4 {
   background-color: #DC3E26;
 }
 
+.row-and-bike-this-day {
+  color: black;
+  background-image: linear-gradient(-45deg, #afbd22 50%, #B6C7D9 50% );
+}
+
 .day-label {
   font-size:0.6em;
   color:#7f99b2;
@@ -207,28 +221,14 @@ h2, h3, h4 {
   width: 100% !important;
 }
 
-@media only screen and (max-width: 900px) {
-  .app-title {
-    width:100%;
-    display:block;
-    padding-top:12px;
+@media only screen and (max-width: 1000px) {
+  .month-cards {
+    grid-template-columns: repeat(3, 1fr);
   }
+}
 
-  .app-title h2 {
-    color:#6690BB;
-    font-size:1.5em;
+@media only screen and (max-width: 600px) {
+  .month-cards {
+    grid-template-columns: repeat(1, 1fr);
   }
-
-  .upload-file {
-    width:100%;
-    display:block;
-  }
-
-  .month-card {
-    width:100%;
-    display:block;
-    border:1px solid #324d67;
-    background-color: #002142 !important;
-  }
-
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import {MonthDataIF} from "../../types/types.ts";
 import {parse, getDay, lastDayOfMonth, getDate} from 'date-fns';
+import {Tooltip} from "@mantine/core";
 
 const generateTableCells = (totalCells: number, cellsPerRow: number, month: string, data: MonthDataIF) => {
   // Determine which day of the week this month began on
@@ -24,13 +25,54 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
       if (i === 0 && j < dayOfWeekIndex) {
         row.push(<td key={`empty-${i}-${j}`}></td>); // Lead with empty cells until the first day of the month
       } else if (currentDay <= totalCells) {
-        const rowThisDay = data.rowErgDates[currentDay - 1] === 1 ? 'row-this-day' : '';
-        const bikeThisDay = data.bikeErgDates[currentDay - 1] === 1 ? 'bike-this-day' : '';
-        const skiThisDay = data.skiErgDates[currentDay - 1] === 1 ? 'ski-this-day' : '';
+        const rowData = data.rowErgDates[currentDay - 1];
+        const bikeData = data.bikeErgDates[currentDay - 1];
+        const skiData = data.skiErgDates[currentDay - 1];
 
-        row.push(<td key={currentDay} className={`center-calendar-date ${rowThisDay} ${bikeThisDay} ${skiThisDay}`}>
-          {currentDay}
-        </td>
+        let tooltipLabel = '';
+        let tooltipLabelDate = '';
+        if (rowData) {
+          const rowDistance = data.rowErgDates[currentDay - 1]?.distance;
+          tooltipLabel += `Rowed ${rowDistance}m` ?? '';
+          tooltipLabelDate = data.rowErgDates[currentDay - 1]?.date ?? '';
+        }
+        if (bikeData) {
+          const bikeDistance = data.bikeErgDates[currentDay - 1]?.distance ?? '';
+          const prefix = rowData ? ' and Biked' : 'Biked';
+          tooltipLabel += `${prefix} ${bikeDistance}m`;
+          tooltipLabelDate = data.bikeErgDates[currentDay - 1]?.date ?? '';
+        }
+        if (skiData) {
+          const skiDistance = data.skiErgDates[currentDay - 1]?.distance ?? '';
+          const prefix = rowData || bikeData ? ' and Skied' : 'Skied';
+          tooltipLabel += `${prefix} ${skiDistance}m`;
+          tooltipLabelDate = data.skiErgDates[currentDay - 1]?.date ?? '';
+        }
+        if (rowData || bikeData || skiData) {
+          tooltipLabel += ` on ${tooltipLabelDate}`;
+        }
+        if (tooltipLabel === '') {
+          tooltipLabel = 'No workout data for this date';
+        }
+
+        // style the cell to match ergs used that day
+        const rowThisDay = rowData && !bikeData && !skiData ? 'row-this-day' : '';
+        const bikeThisDay = bikeData && !rowData && !rowData ? 'bike-this-day' : '';
+        const skiThisDay = skiData && !bikeData && !rowData ? 'ski-this-day' : '';
+        // todo: add more combos (this is the only combo I can currently create with my own csv data)
+        const rowAndBikeThisDay = rowData && bikeData && !skiData ? 'row-and-bike-this-day' : '';
+
+        row.push(
+          <Tooltip label={tooltipLabel}>
+            <td key={currentDay}
+                className={`center-calendar-date
+                    ${rowThisDay} 
+                    ${bikeThisDay} 
+                    ${skiThisDay}
+                    ${rowAndBikeThisDay}`}>
+              {currentDay}
+            </td>
+          </Tooltip>
         );
         currentDay++;
       } else {
@@ -54,7 +96,7 @@ const CalendarComponent: React.FC<CalendarIF> = ({month, data}) => {
   const cellsPerRow = 7;
 
   return (
-    <table>
+    <table className={"calendar"}>
       <tbody>
       {generateTableCells(totalCells, cellsPerRow, month, data)}
       </tbody>

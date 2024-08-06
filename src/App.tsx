@@ -14,7 +14,7 @@ import {
   getFormattedDistance,
   getFormattedDuration,
   getFormattedTime,
-  getMonthNumber, getRowYear, parseTimeToMilliseconds
+  getMonthNumber, getNumberWithCommas, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
 import {MonthCards} from "./components/BestsByMonth/MonthCards.tsx";
 import {
@@ -173,9 +173,9 @@ function App() {
                   rowErgCount: 0,
                   bikeErgCount: 0,
                   skiErgCount: 0,
-                  rowErgDates: _.fill(Array(32), 0),
-                  bikeErgDates: _.fill(Array(32), 0),
-                  skiErgDates: _.fill(Array(32), 0),
+                  rowErgDates: _.fill(Array(32), undefined),
+                  bikeErgDates: _.fill(Array(32), undefined),
+                  skiErgDates: _.fill(Array(32), undefined),
                 } as const;
               }
 
@@ -223,7 +223,12 @@ function App() {
                 localPaceTrendsRow.push(newPace);
                 if (best?.rowErgCount !== undefined) {
                   best.rowErgCount = best.rowErgCount + 1;
-                  best.rowErgDates[parsedCSVRowData.day] = 1;
+                  best.rowErgDates[parsedCSVRowData.day] = {
+                    date: parsedCSVRowData.date,
+                    ergType: 'RowErg',
+                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    time: String(parsedCSVRowData.workTime),
+                  };
                 }
               } else if (ergType === 'bikeErg') {
                 setHasBikeErg(true);
@@ -231,7 +236,12 @@ function App() {
                 localPaceTrendsBike.push(newPace);
                 if (best?.bikeErgCount !== undefined) {
                   best.bikeErgCount = best.bikeErgCount + 1;
-                  best.bikeErgDates[parsedCSVRowData.day] = 1;
+                  best.bikeErgDates[parsedCSVRowData.day] = {
+                    date: parsedCSVRowData.date,
+                    ergType: 'RowErg',
+                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    time: String(parsedCSVRowData.workTime),
+                  };
                 }
               } else if (ergType === 'skiErg') {
                 setHasSkiErg(true);
@@ -239,7 +249,12 @@ function App() {
                 localPaceTrendsSki.push(newPace);
                 if (best?.skiErgCount !== undefined) {
                   best.skiErgCount = best.skiErgCount + 1;
-                  best.skiErgDates[parsedCSVRowData.day] = 1;
+                  best.skiErgDates[parsedCSVRowData.day] = {
+                    date: parsedCSVRowData.date,
+                    ergType: 'RowErg',
+                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    time: String(parsedCSVRowData.workTime),
+                  };
                 }
               } else {
                 console.log("Unsupported erg type found")
@@ -307,7 +322,7 @@ function App() {
             <Divider/>
 
             {unfilteredRowData.length === 0 && <p>Upload your 'concept2-season-2024.csv' from the erg site</p>}
-            {unfilteredRowData.length > 0 && <p>You completed {unfilteredRowData.length} workouts this year 🥇</p>}
+            {unfilteredRowData.length > 0 && <p>You completed {unfilteredRowData.length} workouts this calendar year 🥇</p>}
 
             {/** Month cards **/}
             {isDoneLoading ? <MonthCards bests={bests} hasRowErg={hasRowErg}

@@ -36,9 +36,9 @@ export interface MonthDataIF {
   rowErgCount: number,
   bikeErgCount: number,
   skiErgCount: number,
-  rowErgDates: number[],
-  bikeErgDates: number[],
-  skiErgDates: number[],
+  rowErgDates: CalendarDataIF[] | undefined[],
+  bikeErgDates: CalendarDataIF[] | undefined[],
+  skiErgDates: CalendarDataIF[] | undefined[],
 }
 export type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
 export type LocalBests = {
@@ -86,4 +86,11 @@ export interface BestDataForErgIF {
 
 export interface RowIF { // ag-grid row, not erg row
   valueFormatted: string,
+}
+
+export interface CalendarDataIF {
+  date: string;
+  ergType: string;
+  distance: string;
+  time: string;
 }
