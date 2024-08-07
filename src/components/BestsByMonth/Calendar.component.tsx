@@ -16,7 +16,7 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
   for (let i = 0; i < dayLabels.length; i ++) {
     labelRow.push(<td key={`label-${dayLabels[i]}-${i}`} className='center-calendar-date day-label'>{dayLabels[i]}</td>);
   }
-  rows.push(labelRow);
+  rows.push(<tr key={`day-labels`}>{labelRow}</tr>);
 
   let currentDay = 1;
   for (let i = 0; i < totalCells; i += cellsPerRow) {
@@ -25,28 +25,28 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
       if (i === 0 && j < dayOfWeekIndex) {
         row.push(<td key={`empty-${i}-${j}`}></td>); // Lead with empty cells until the first day of the month
       } else if (currentDay <= totalCells) {
-        const rowData = data.rowErgDates[currentDay - 1];
-        const bikeData = data.bikeErgDates[currentDay - 1];
-        const skiData = data.skiErgDates[currentDay - 1];
+        const rowData = data.rowErgDates[currentDay];
+        const bikeData = data.bikeErgDates[currentDay];
+        const skiData = data.skiErgDates[currentDay];
 
         let tooltipLabel = '';
         let tooltipLabelDate = '';
         if (rowData) {
-          const rowDistance = data.rowErgDates[currentDay - 1]?.distance;
+          const rowDistance = rowData?.distance;
           tooltipLabel += `Rowed ${rowDistance}m` ?? '';
-          tooltipLabelDate = data.rowErgDates[currentDay - 1]?.date ?? '';
+          tooltipLabelDate = rowData?.date ?? '';
         }
         if (bikeData) {
-          const bikeDistance = data.bikeErgDates[currentDay - 1]?.distance ?? '';
+          const bikeDistance = bikeData?.distance ?? '';
           const prefix = rowData ? ' and Biked' : 'Biked';
           tooltipLabel += `${prefix} ${bikeDistance}m`;
-          tooltipLabelDate = data.bikeErgDates[currentDay - 1]?.date ?? '';
+          tooltipLabelDate = bikeData?.date ?? '';
         }
         if (skiData) {
-          const skiDistance = data.skiErgDates[currentDay - 1]?.distance ?? '';
+          const skiDistance = skiData?.distance ?? '';
           const prefix = rowData || bikeData ? ' and Skied' : 'Skied';
           tooltipLabel += `${prefix} ${skiDistance}m`;
-          tooltipLabelDate = data.skiErgDates[currentDay - 1]?.date ?? '';
+          tooltipLabelDate = skiData?.date ?? '';
         }
         if (rowData || bikeData || skiData) {
           tooltipLabel += ` on ${tooltipLabelDate}`;
@@ -63,8 +63,8 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
         const rowAndBikeThisDay = rowData && bikeData && !skiData ? 'row-and-bike-this-day' : '';
 
         row.push(
-          <Tooltip label={tooltipLabel}>
-            <td key={currentDay}
+          <Tooltip key={`tooltip-${month}-${currentDay}-${i}-${j}`} label={tooltipLabel}>
+            <td key={`${month}-${currentDay}-${i}-${j}`}
                 className={`center-calendar-date
                     ${rowThisDay} 
                     ${bikeThisDay} 
@@ -76,10 +76,10 @@ const generateTableCells = (totalCells: number, cellsPerRow: number, month: stri
         );
         currentDay++;
       } else {
-        row.push(<td key={`empty-${i}-${j}`}></td>); // Fill empty cells if necessary
+        row.push(<td key={`${month}-empty-${i}-${j}`}></td>); // Fill empty cells if necessary
       }
     }
-    rows.push(<tr key={i}>{row}</tr>);
+    rows.push(<tr key={`${month}-row-${i}`}>{row}</tr>);
   }
   return rows;
 };
