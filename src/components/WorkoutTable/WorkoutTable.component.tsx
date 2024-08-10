@@ -8,11 +8,10 @@ import {ColDef, ColGroupDef, GridOptions, ICellRendererParams} from "ag-grid-com
 import {isAfter, isBefore, subDays} from "date-fns";
 import {useForm} from "react-hook-form";
 import {getFormattedDistanceString} from "../../services/formatting_utils.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store/store.ts";
 
 interface WorkoutTableComponentIF {
-  hasRowErg: boolean;
-  hasBikeErg: boolean;
-  hasSkiErg: boolean;
   unfilteredRowData: ParsedCSVRowDataIF[];
 }
 
@@ -99,11 +98,13 @@ const ALL_COLUMNS = [
   {field: 'ranked', flex: 1},
 ];
 
-export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({hasRowErg, hasBikeErg, hasSkiErg, unfilteredRowData}) => {
+export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({ unfilteredRowData}) => {
   const DATE_FORMAT = "MMM D, YYYY";
   const gridOptions: GridOptions = {
     getRowStyle: getRowStyleErgType
   }
+
+  const ergDataState = useSelector((state: RootState) => state.ergData);
 
   function getRowStyleErgType(item: WorkoutDataType) {
     if (item.data.type === 'rowErg') {
@@ -220,17 +221,17 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({hasRow
         wrap="wrap"
       >
         <Chip
-          checked={includeRower && hasRowErg}
-          disabled={!hasRowErg}
+          checked={includeRower && ergDataState.hasRowErg}
+          disabled={!ergDataState.hasRowErg}
           onChange={() => setIncludeRower((v) => !v)}>
           RowErg
         </Chip>
 
-        <Chip checked={includeBike && hasBikeErg} disabled={!hasBikeErg} onChange={() => setIncludeBike(v => !v)}>
+        <Chip checked={includeBike && ergDataState.hasBikeErg} disabled={!ergDataState.hasBikeErg} onChange={() => setIncludeBike(v => !v)}>
           BikeErg
         </Chip>
 
-        <Chip checked={includeSki && hasSkiErg} disabled={!hasSkiErg} onChange={() => setIncludeSki(v => !v)}>
+        <Chip checked={includeSki && ergDataState.hasSkiErg} disabled={!ergDataState.hasSkiErg} onChange={() => setIncludeSki(v => !v)}>
           SkiErg
         </Chip>
       </Flex>

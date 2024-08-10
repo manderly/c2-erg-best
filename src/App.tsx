@@ -26,6 +26,12 @@ import {
 } from "./types/types.ts";
 import {TrendsComponent} from "./components/TrendCharts/Trends.component.tsx";
 import {WorkoutTableComponent} from "./components/WorkoutTable/WorkoutTable.component.tsx";
+import {useDispatch} from "react-redux";
+import {
+  setHasBikeErg,
+  setHasRowErg,
+  setHasSkiErg
+} from "./store/ergDataSlice";
 
 const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
 const TEST_MODE = true;
@@ -49,14 +55,12 @@ const DEFAULT_RECORD_DATA: BestDataForErgIF = {
 };
 
 function App() {
+  const dispatch = useDispatch();
+
   const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 
   const [isDoneLoading, setIsDoneLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-
-  const [hasRowErg, setHasRowErg] = useState(false);
-  const [hasBikeErg, setHasBikeErg] = useState(false);
-  const [hasSkiErg, setHasSkiErg] = useState(false);
 
   const [unfilteredRowData, setUnfilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
   const [bests, setBests] = useState({});
@@ -218,7 +222,7 @@ function App() {
               const best = localBests[monthName];
 
               if (ergType === 'rowErg') {
-                setHasRowErg(true);
+                dispatch(setHasRowErg());
                 localDistanceTrendsRow.push(newDistance);
                 localPaceTrendsRow.push(newPace);
                 if (best?.rowErgCount !== undefined) {
@@ -231,7 +235,7 @@ function App() {
                   };
                 }
               } else if (ergType === 'bikeErg') {
-                setHasBikeErg(true);
+                dispatch(setHasBikeErg());
                 localDistanceTrendsBike.push(newDistance);
                 localPaceTrendsBike.push(newPace);
                 if (best?.bikeErgCount !== undefined) {
@@ -244,7 +248,7 @@ function App() {
                   };
                 }
               } else if (ergType === 'skiErg') {
-                setHasSkiErg(true);
+                dispatch(setHasSkiErg());
                 localDistanceTrendsSki.push(newDistance);
                 localPaceTrendsSki.push(newPace);
                 if (best?.skiErgCount !== undefined) {
@@ -325,26 +329,15 @@ function App() {
             {unfilteredRowData.length > 0 && <p>You completed {unfilteredRowData.length} workouts this calendar year 🥇</p>}
 
             {/** Month cards **/}
-            {isDoneLoading ? <MonthCards bests={bests} hasRowErg={hasRowErg}
-                                         hasBikeErg={hasBikeErg}
-                                         hasSkiErg={hasSkiErg}/> : <>Loading...</>}
+            {isDoneLoading ? <MonthCards bests={bests}/> : <>Loading...</>}
 
             {/** Trend charts **/}
             <br/>
-            {trends !== undefined && <TrendsComponent
-              hasRowErg={hasRowErg}
-              hasBikeErg={hasBikeErg}
-              hasSkiErg={hasSkiErg}
-              trends={trends}
-            />}
+            {trends !== undefined &&
+                <TrendsComponent trends={trends} />}
 
             {/** AG-grid table with workout details **/}
-            <WorkoutTableComponent
-                hasRowErg={hasRowErg}
-                hasBikeErg={hasBikeErg}
-                hasSkiErg={hasSkiErg}
-                unfilteredRowData={unfilteredRowData}/>
-
+            <WorkoutTableComponent unfilteredRowData={unfilteredRowData}/>
             </Grid.Col>
           </Grid>
         </div>

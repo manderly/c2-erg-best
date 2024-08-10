@@ -4,16 +4,13 @@ import IndividualCardComponent from "./IndividualCard.component.tsx";
 
 interface MonthCardsIF {
   bests: object,
-  hasRowErg: boolean,
-  hasBikeErg: boolean,
-  hasSkiErg: boolean,
 }
 
-export const MonthCards: React.FC<MonthCardsIF> = ({bests, hasRowErg, hasBikeErg, hasSkiErg}) => {
+export const MonthCards: React.FC<MonthCardsIF> = ({bests}) => {
   const sorted = _.orderBy((bests), 'date');
   return <div className={"month-cards"}>
     {Object.entries(sorted).map(([key, value]) => (
-      <IndividualCardComponent key={`month-${key}`} month={key} data={value} hasRowErg={hasRowErg} hasBikeErg={hasBikeErg} hasSkiErg={hasSkiErg} />
+      <IndividualCardComponent key={`month-${key}`} month={key} data={value} />
     ))}
   </div>
 };

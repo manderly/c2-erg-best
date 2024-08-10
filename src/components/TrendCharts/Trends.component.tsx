@@ -4,11 +4,10 @@ import {formatMillisecondsToTimestamp, getFormattedDistanceString} from "../../s
 import {useState} from "react";
 import {TrendsDataIF} from "../../types/types.ts";
 import {BIKE_ERG_COLOR, ROW_ERG_COLOR, SKI_ERG_COLOR} from "../../consts/consts.ts";
+import {useSelector} from "react-redux";
+import {RootState} from "../../store/store.ts";
 
 interface TrendsComponentIF {
-  hasRowErg: boolean;
-  hasBikeErg: boolean;
-  hasSkiErg: boolean;
   trends: TrendsDataIF;
 }
 
@@ -25,7 +24,9 @@ function getColorForErgType(ergType: string) {
   }
 }
 
-export const TrendsComponent: React.FC<TrendsComponentIF> = ({hasRowErg, hasBikeErg, hasSkiErg, trends}) => {
+export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends}) => {
+  const ergDataState = useSelector((state: RootState) => state.ergData);
+
   const [chartErgType, setChartErgType] = useState("rowErg");
 
   const handleChartErgTypeRadio = (e: string) => {
@@ -37,9 +38,9 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({hasRowErg, hasBike
       <div className={"radio-group-inline"}>
         <h2>Trends for </h2>
         <RadioGroup value={chartErgType} onChange={handleChartErgTypeRadio} className="radio-group">
-          <div><Radio disabled={!hasRowErg} value="rowErg" label="RowErg"/></div>
-          <div><Radio disabled={!hasBikeErg} value="bikeErg" label="BikeErg"/></div>
-          <div><Radio disabled={!hasSkiErg} value="skiErg" label="SkiErg"/></div>
+          <div><Radio disabled={!ergDataState.hasRowErg} value="rowErg" label="RowErg"/></div>
+          <div><Radio disabled={!ergDataState.hasBikeErg} value="bikeErg" label="BikeErg"/></div>
+          <div><Radio disabled={!ergDataState.hasSkiErg} value="skiErg" label="SkiErg"/></div>
         </RadioGroup>
       </div>
       <BarChartComponent
