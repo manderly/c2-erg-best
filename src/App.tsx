@@ -15,7 +15,6 @@ import {
   getFormattedDistanceString,
   getFormattedTime,
   getMonthNumber,
-  getNumberWithCommas,
   getRowYear,
   parseTimeToMilliseconds,
 } from "./services/formatting_utils";
@@ -30,6 +29,7 @@ import {
   TrendsDataIF,
   DateAndWorkTimeIF,
   WorkDistanceSumsIF,
+  SessionDataIF,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
 import { WorkoutTableComponent } from "./components/WorkoutTable/WorkoutTable.component.tsx";
@@ -128,6 +128,15 @@ function App() {
     }
   }, []);
 
+  const getSessionData = (parsedCSVRowData: ParsedCSVRowDataIF) => {
+    return {
+      date: parsedCSVRowData.date,
+      ergType: parsedCSVRowData.type,
+      distance: parsedCSVRowData.workDistance,
+      time: String(parsedCSVRowData.workTime),
+    };
+  };
+
   const fetchLocalCSVFile = async (fileName: string): Promise<File | null> => {
     try {
       const response = await fetch(fileName);
@@ -205,7 +214,7 @@ function App() {
                 id: String(row[0]),
               };
 
-              // add these meters to the sum
+              // add these meters to the sum for this date
               localMetersSum +=
                 parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
 
@@ -224,9 +233,15 @@ function App() {
                   rowErgCount: 0,
                   bikeErgCount: 0,
                   skiErgCount: 0,
-                  rowErgDates: _.fill(Array(32), undefined),
-                  bikeErgDates: _.fill(Array(32), undefined),
-                  skiErgDates: _.fill(Array(32), undefined),
+                  rowErgSessionsByDayOfMonth: [...Array(32)].map(
+                    (): SessionDataIF[] => [],
+                  ),
+                  bikeErgSessionsByDayOfMonth: [...Array(32)].map(
+                    (): SessionDataIF[] => [],
+                  ),
+                  skiErgSessionsByDayOfMonth: [...Array(32)].map(
+                    (): SessionDataIF[] => [],
+                  ),
                 } as const;
               }
 
@@ -274,46 +289,46 @@ function App() {
                 }
               }
 
-              // add to "distanceTrends" object
+              /**
+               * Multiple workouts of the same type in the same day are aggregated
+               * for the sake of calculating day-over-day trends
+               **/
               const newDistance: { date: string; distance: number } = {
                 date: parsedCSVRowData.date,
                 distance:
                   parsedCSVRowData.workDistance + parsedCSVRowData.restDistance,
               };
-              // add to "paceTrends" object
               const newPace: { date: string; pace: number } = {
                 date: parsedCSVRowData.date,
                 pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
               };
-              // add to "workTimeTrends" object
               const newWorkTime: { date: string; workTime: number } = {
                 date: parsedCSVRowData.date,
                 workTime: parsedCSVRowData.workTime,
               };
 
-              const best = localBests[monthName];
+              const month = localBests[monthName];
 
               if (ergType === "rowErg") {
                 dispatch(setHasRowErg());
                 localDistanceTrendsRow.push(newDistance);
                 localPaceTrendsRow.push(newPace);
                 localWorkTimeTrendsRow.push(newWorkTime);
-                if (best?.rowErgCount !== undefined) {
-                  best.rowErgCount = best.rowErgCount + 1;
-                  best.rowErgDates[parsedCSVRowData.day] = {
-                    date: parsedCSVRowData.date,
-                    ergType: "RowErg",
-                    distance: getNumberWithCommas(
-                      parsedCSVRowData.workDistance,
-                    ),
-                    time: String(parsedCSVRowData.workTime),
-                  };
-                  best.rowErg.workDistanceSum =
-                    best.rowErg.workDistanceSum +
+                if (month?.rowErgCount !== undefined) {
+                  month.rowErgCount = month.rowErgCount + 1;
+
+                  // push new entry to the correct day of the month array
+                  const newSession = getSessionData(parsedCSVRowData);
+                  month.rowErgSessionsByDayOfMonth[parsedCSVRowData.day].push(
+                    newSession,
+                  );
+
+                  month.rowErg.workDistanceSum =
+                    month.rowErg.workDistanceSum +
                     parsedCSVRowData.workDistance +
                     parsedCSVRowData.restDistance;
-                  best.rowErg.workTimeSum =
-                    best.rowErg.workTimeSum + parsedCSVRowData.workTime;
+                  month.rowErg.workTimeSum =
+                    month.rowErg.workTimeSum + parsedCSVRowData.workTime;
                   workDistanceSums.rowErg =
                     workDistanceSums.rowErg + parsedCSVRowData.workDistance;
                 }
@@ -322,21 +337,20 @@ function App() {
                 localDistanceTrendsBike.push(newDistance);
                 localPaceTrendsBike.push(newPace);
                 localWorkTimeTrendsBike.push(newWorkTime);
-                if (best?.bikeErgCount !== undefined) {
-                  best.bikeErgCount = best.bikeErgCount + 1;
-                  best.bikeErgDates[parsedCSVRowData.day] = {
-                    date: parsedCSVRowData.date,
-                    ergType: "RowErg",
-                    distance: getNumberWithCommas(
-                      parsedCSVRowData.workDistance,
-                    ),
-                    time: String(parsedCSVRowData.workTime),
-                  };
-                  best.bikeErg.workDistanceSum =
-                    best.bikeErg.workDistanceSum +
+                if (month?.bikeErgCount !== undefined) {
+                  month.bikeErgCount = month.bikeErgCount + 1;
+
+                  // push new entry to the correct day of the month array
+                  const newSession = getSessionData(parsedCSVRowData);
+                  month.bikeErgSessionsByDayOfMonth[parsedCSVRowData.day].push(
+                    newSession,
+                  );
+
+                  month.bikeErg.workDistanceSum =
+                    month.bikeErg.workDistanceSum +
                     parsedCSVRowData.workDistance;
-                  best.bikeErg.workTimeSum =
-                    best.bikeErg.workTimeSum + parsedCSVRowData.workTime;
+                  month.bikeErg.workTimeSum =
+                    month.bikeErg.workTimeSum + parsedCSVRowData.workTime;
                   workDistanceSums.bikeErg =
                     workDistanceSums.bikeErg + parsedCSVRowData.workDistance;
                 }
@@ -345,20 +359,20 @@ function App() {
                 localDistanceTrendsSki.push(newDistance);
                 localPaceTrendsSki.push(newPace);
                 localWorkTimeTrendsSki.push(newWorkTime);
-                if (best?.skiErgCount !== undefined) {
-                  best.skiErgCount = best.skiErgCount + 1;
-                  best.skiErgDates[parsedCSVRowData.day] = {
-                    date: parsedCSVRowData.date,
-                    ergType: "RowErg",
-                    distance: getNumberWithCommas(
-                      parsedCSVRowData.workDistance,
-                    ),
-                    time: String(parsedCSVRowData.workTime),
-                  };
-                  best.skiErg.workDistanceSum =
-                    best.skiErg.workDistanceSum + parsedCSVRowData.workDistance;
-                  best.skiErg.workTimeSum =
-                    best.skiErg.workTimeSum + parsedCSVRowData.workTime;
+                if (month?.skiErgCount !== undefined) {
+                  month.skiErgCount = month.skiErgCount + 1;
+
+                  // push new entry to the correct day of the month array
+                  const newSession = getSessionData(parsedCSVRowData);
+                  month.skiErgSessionsByDayOfMonth[parsedCSVRowData.day].push(
+                    newSession,
+                  );
+
+                  month.skiErg.workDistanceSum =
+                    month.skiErg.workDistanceSum +
+                    parsedCSVRowData.workDistance;
+                  month.skiErg.workTimeSum =
+                    month.skiErg.workTimeSum + parsedCSVRowData.workTime;
                   workDistanceSums.skiErg =
                     workDistanceSums.skiErg + parsedCSVRowData.workDistance;
                 }

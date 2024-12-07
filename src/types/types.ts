@@ -36,9 +36,9 @@ export interface MonthDataIF {
   rowErgCount: number;
   bikeErgCount: number;
   skiErgCount: number;
-  rowErgDates: CalendarDataIF[] | undefined[];
-  bikeErgDates: CalendarDataIF[] | undefined[];
-  skiErgDates: CalendarDataIF[] | undefined[];
+  rowErgSessionsByDayOfMonth: SessionDataIF[][] | [];
+  bikeErgSessionsByDayOfMonth: SessionDataIF[][] | [];
+  skiErgSessionsByDayOfMonth: SessionDataIF[][] | [];
 }
 export type Months =
   | "January"
@@ -114,10 +114,10 @@ export interface RowIF {
   valueFormatted: string;
 }
 
-export interface CalendarDataIF {
+export interface SessionDataIF {
   date: string;
   ergType: string;
-  distance: string;
+  distance: number;
   time: string;
 }
 

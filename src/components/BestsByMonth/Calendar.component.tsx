@@ -2,6 +2,7 @@ import React from "react";
 import { MonthDataIF } from "../../types/types.ts";
 import { parse, getDay, lastDayOfMonth, getDate } from "date-fns";
 import { Tooltip } from "@mantine/core";
+import { getFormattedDistanceString } from "../../services/formatting_utils.ts";
 
 const generateTableCells = (
   totalCells: number,
@@ -41,46 +42,68 @@ const generateTableCells = (
       if (i === 0 && j < dayOfWeekIndex) {
         row.push(<td key={`empty-${i}-${j}`}></td>); // Lead with empty cells until the first day of the month
       } else if (currentDay <= totalCells) {
-        const rowData = data.rowErgDates[currentDay];
-        const bikeData = data.bikeErgDates[currentDay];
-        const skiData = data.skiErgDates[currentDay];
+        const rowData = data.rowErgSessionsByDayOfMonth[currentDay];
+        const bikeData = data.bikeErgSessionsByDayOfMonth[currentDay];
+        const skiData = data.skiErgSessionsByDayOfMonth[currentDay];
 
         let tooltipLabel = "";
+
         let tooltipLabelDate = "";
-        if (rowData) {
-          const rowDistance = rowData?.distance;
-          tooltipLabel += `Rowed ${rowDistance}m` ?? "";
-          tooltipLabelDate = rowData?.date ?? "";
+        if (rowData.length > 0) {
+          const totalDistance = getFormattedDistanceString(
+            rowData.reduce((sum, item) => sum + item.distance, 0),
+            false,
+          );
+          tooltipLabel += `[${rowData.length} RowErg sessions = ${totalDistance} meters]`;
+          tooltipLabelDate = rowData[0].date;
         }
-        if (bikeData) {
-          const bikeDistance = bikeData?.distance ?? "";
-          const prefix = rowData ? " and Biked" : "Biked";
-          tooltipLabel += `${prefix} ${bikeDistance}m`;
-          tooltipLabelDate = bikeData?.date ?? "";
+
+        if (bikeData.length > 0) {
+          const totalDistance = getFormattedDistanceString(
+            bikeData.reduce((sum, item) => sum + item.distance, 0),
+            false,
+          );
+          tooltipLabel += `[${bikeData.length} BikeErg sessions = ${totalDistance} meters]`;
+          tooltipLabelDate = bikeData[0].date;
         }
-        if (skiData) {
-          const skiDistance = skiData?.distance ?? "";
-          const prefix = rowData || bikeData ? " and Skied" : "Skied";
-          tooltipLabel += `${prefix} ${skiDistance}m`;
-          tooltipLabelDate = skiData?.date ?? "";
+
+        if (skiData.length > 0) {
+          const totalDistance = getFormattedDistanceString(
+            skiData.reduce((sum, item) => sum + item.distance, 0),
+            false,
+          );
+          tooltipLabel += `[${skiData.length} SkiErg sessions = ${totalDistance} meters]`;
+          tooltipLabelDate = skiData[0].date;
         }
+
         if (rowData || bikeData || skiData) {
           tooltipLabel += ` on ${tooltipLabelDate}`;
         }
-        if (tooltipLabel === "") {
+
+        if (
+          rowData.length === 0 &&
+          bikeData.length === 0 &&
+          skiData.length === 0
+        ) {
           tooltipLabel = "No workout data for this date";
         }
 
         // style the cell to match ergs used that day
-        const rowThisDay =
-          rowData && !bikeData && !skiData ? "row-this-day" : "";
-        const bikeThisDay =
-          bikeData && !rowData && !rowData ? "bike-this-day" : "";
-        const skiThisDay =
-          skiData && !bikeData && !rowData ? "ski-this-day" : "";
-        // todo: add more combos (this is the only combo I can currently create with my own csv data)
+        const rowThisDay = rowData.length > 0 ? "row-this-day" : "";
+        const bikeThisDay = bikeData.length > 0 ? "bike-this-day" : "";
+        const skiThisDay = skiData.length > 0 ? "ski-this-day" : "";
+
+        // todo: add more combos
+        // (this is the only combo I can currently create with my own csv data)
         const rowAndBikeThisDay =
-          rowData && bikeData && !skiData ? "row-and-bike-this-day" : "";
+          rowThisDay && bikeThisDay && !skiThisDay
+            ? "row-and-bike-this-day"
+            : "";
+
+        // const rowAndSkiThisDay =
+        //   rowThisDay && !bikeThisDay && skiThisDay
+        //     ? "row-and-ski-this-day"
+        //     : "";
 
         row.push(
           <Tooltip

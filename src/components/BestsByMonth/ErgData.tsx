@@ -33,36 +33,38 @@ export const ErgData: React.FC<ErgDataIF> = ({
       {data && (
         <>
           <strong className={`erg-type-label ${label}-label`}>{label}</strong>
-          <TotalsComponent
-            sessions={workoutCount}
-            meters={formattedWorkDistance}
-            workTime={getFormattedDuration(data.workTimeSum)}
-          />
 
           {data.bestPace.value === "999:00.0" && (
             <div className="no-data-div">No {label} data for this month</div>
           )}
           {data.bestPace.value !== "999:00.0" && (
-            <ul>
-              <li>
-                <DisplayBestPace
-                  data={data.bestPace}
-                  distanceUnits={distanceUnits}
-                />
-              </li>
-              <li>
-                <DisplayBestDistance data={data.bestDistance} />
-              </li>
-              <li>
-                <DisplayBestStroke
-                  data={data.bestStroke}
-                  strokeUnits={strokeUnits}
-                />
-              </li>
-              <li>
-                <DisplayBestWorkTime data={data.bestWorkTime} />
-              </li>
-            </ul>
+            <>
+              <TotalsComponent
+                sessions={workoutCount}
+                meters={formattedWorkDistance}
+                workTime={getFormattedDuration(data.workTimeSum)}
+              />
+              <ul>
+                <li>
+                  <DisplayBestPace
+                    data={data.bestPace}
+                    distanceUnits={distanceUnits}
+                  />
+                </li>
+                <li>
+                  <DisplayBestDistance data={data.bestDistance} />
+                </li>
+                <li>
+                  <DisplayBestStroke
+                    data={data.bestStroke}
+                    strokeUnits={strokeUnits}
+                  />
+                </li>
+                <li>
+                  <DisplayBestWorkTime data={data.bestWorkTime} />
+                </li>
+              </ul>
+            </>
           )}
         </>
       )}
