@@ -221,6 +221,12 @@ h2, h3, h4 {
   width: 100% !important;
 }
 
+.totals-label-and-value {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 @media only screen and (max-width: 1000px) {
   .month-cards {
     grid-template-columns: repeat(3, 1fr);

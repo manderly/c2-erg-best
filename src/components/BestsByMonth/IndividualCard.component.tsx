@@ -1,7 +1,10 @@
 import React from 'react';
 import { Card } from '@mantine/core';
 import { MonthDataIF } from '../../types/types.ts';
-import { isCurrentMonth } from '../../services/formatting_utils.ts';
+import {
+    getFormattedDistanceString, getFormattedDuration,
+    isCurrentMonth
+} from '../../services/formatting_utils.ts';
 import { ErgData } from './ErgData.tsx';
 import CalendarComponent from "./Calendar.component.tsx";
 import {useSelector} from "react-redux";
@@ -14,20 +17,41 @@ interface IndividualCardIF {
 
 const IndividualCardComponent: React.FC<IndividualCardIF> = ({ month, data }) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
+  const combinedCount = data.rowErgCount + data.bikeErgCount + data.skiErgCount;
+  const combinedMeters = getFormattedDistanceString(
+      data.rowErg.workDistanceSum + data.bikeErg.workDistanceSum + data.skiErg.workDistanceSum, false);
+  const combinedWorkTime = getFormattedDuration(data.rowErg.workTimeSum + data.bikeErg.workTimeSum + data.skiErg.workTimeSum);
+
   return (
-    <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
-      <div className={"month-card-title pad-bottom"}>
-        <span className={"month-name"}>{data.name}</span>
-        <span className={"year-name"}>{data.year === 0 ? 'No data yet' : data.year}</span>
-      </div>
-
-      <CalendarComponent month={month} data={data}/>
-
-      <h5>{data.rowErgCount + data.bikeErgCount + data.skiErgCount} workouts</h5>
-      {ergDataState.hasRowErg && <ErgData label="RowErg" data={data.rowErg} workoutCount={data.rowErgCount} distanceUnits="500" strokeUnits="per min" />}
-      {ergDataState.hasBikeErg && <ErgData label="BikeErg" data={data.bikeErg} workoutCount={data.bikeErgCount} distanceUnits="1,000" strokeUnits="rpm" />}
-      {ergDataState.hasSkiErg && <ErgData label="SkiErg" data={data.skiErg} workoutCount={data.skiErgCount} />}
-    </Card>
+      <Card className={`month-card ${isCurrentMonth(month) ? 'current-month' : ''}`}>
+          <div className={"month-card-title pad-bottom"}>
+              <span className={"month-name"}>{data.name}</span>
+              <span className={"year-name"}>{data.year === 0 ? 'No data yet' : data.year}</span>
+          </div>
+          <CalendarComponent month={month} data={data}/>
+          <div className={"pad-bottom"}>
+              <div className={"totals-label-and-value"}>Total sessions: <div>{combinedCount}</div></div>
+              <div className={"totals-label-and-value"}>Total meters: <div>{combinedMeters}</div></div>
+              <div className={"totals-label-and-value"}>Total time: <div>{combinedWorkTime}</div></div>
+          </div>
+          {ergDataState.hasRowErg &&
+              <ErgData label="RowErg"
+                       data={data.rowErg}
+                       workoutCount={data.rowErgCount}
+                       distanceUnits="500"
+                       strokeUnits="per min"/>}
+          {ergDataState.hasBikeErg &&
+              <ErgData label="BikeErg"
+                       data={data.bikeErg}
+                       workoutCount={data.bikeErgCount}
+                       distanceUnits="1,000"
+                       strokeUnits="rpm"/>}
+          {ergDataState.hasSkiErg &&
+              <ErgData label="SkiErg"
+                       data={data.skiErg}
+                       workoutCount={data.skiErgCount}
+                       strokeUnits={"minutes"}/>}
+      </Card>
   );
 };
 

@@ -43,11 +43,11 @@ export const getFormattedDistance = (item: string): number => {
   return item ? Number(item) : 0;
 }
 
-export const getFormattedDistanceString = (item: string | number | undefined): string => {
+export const getFormattedDistanceString = (item: string | number | undefined, includeMeters = true): string => {
   if (!item) {
     return '--';
   }
-  return `${Number(item).toLocaleString()}m`;
+  return `${Number(item).toLocaleString()}${includeMeters ? 'm' : ''}`;
 }
 
 export const getMonthNumber = (item: string) => {

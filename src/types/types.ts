@@ -14,8 +14,8 @@ export interface ParsedCSVRowDataIF {
   type: ErgType;
   description: string;
   pace: string;
-  workTime: string;
-  restTime: string;
+  workTime: number;
+  restTime: number;
   workDistance: number;
   restDistance: number;
   strokeRate: number;
@@ -56,6 +56,11 @@ export interface TrendsDataIF {
     bikeErg: DateAndPaceIF[],
     skiErg: DateAndPaceIF[],
   }
+  time: {
+    rowErg: DateAndWorkTimeIF[],
+    bikeErg: DateAndWorkTimeIF[],
+    skiErg: DateAndWorkTimeIF[],
+  }
 }
 
 export interface DateAndDistanceIF {
@@ -66,6 +71,11 @@ export interface DateAndDistanceIF {
 export interface DateAndPaceIF {
   date: string,
   pace: number
+}
+
+export interface DateAndWorkTimeIF {
+  date: string,
+  workTime: number
 }
 
 export type WorkoutDataType = {
@@ -82,6 +92,9 @@ export interface BestDataForErgIF {
   bestDistance: BestWorkoutInCategoryIF;
   bestPace: BestWorkoutInCategoryIF;
   bestStroke: BestWorkoutInCategoryIF;
+  bestWorkTime: BestWorkoutInCategoryIF;
+  workDistanceSum: number;
+  workTimeSum: number;
 }
 
 export interface RowIF { // ag-grid row, not erg row
