@@ -1,61 +1,69 @@
-import {useState, useEffect, FormEvent} from 'react';
-import './App.css'
-import '@mantine/core/styles.css';
-import {Divider, FileInput, MantineProvider, Radio} from '@mantine/core';
-import { Grid, Button, Flex } from '@mantine/core';
+import { useState, useEffect, FormEvent } from "react";
+import "./App.css";
+import "@mantine/core/styles.css";
+import { Divider, FileInput, MantineProvider, Radio } from "@mantine/core";
+import { Grid, Button, Flex } from "@mantine/core";
 
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the grid
-import Papa, {ParseResult} from 'papaparse';
-import _ from 'lodash';
+import Papa, { ParseResult } from "papaparse";
+import _ from "lodash";
 import {
   getDayOfMonth,
   getFormattedDate,
-  getFormattedDistance, getFormattedDistanceString,
+  getFormattedDistance,
+  getFormattedDistanceString,
   getFormattedTime,
-  getMonthNumber, getNumberWithCommas, getRowYear, parseTimeToMilliseconds
+  getMonthNumber,
+  getNumberWithCommas,
+  getRowYear,
+  parseTimeToMilliseconds,
 } from "./services/formatting_utils";
-import {MonthCards} from "./components/BestsByMonth/MonthCards.tsx";
+import { MonthCards } from "./components/BestsByMonth/MonthCards.tsx";
 import {
   BestDataForErgIF,
   ErgType,
   ParsedCSVRowDataIF,
   DateAndDistanceIF,
-  DateAndPaceIF, LocalBests, TrendsDataIF, DateAndWorkTimeIF, WorkDistanceSumsIF
+  DateAndPaceIF,
+  LocalBests,
+  TrendsDataIF,
+  DateAndWorkTimeIF,
+  WorkDistanceSumsIF,
 } from "./types/types.ts";
-import {TrendsComponent} from "./components/TrendCharts/Trends.component.tsx";
-import {WorkoutTableComponent} from "./components/WorkoutTable/WorkoutTable.component.tsx";
-import {useDispatch} from "react-redux";
+import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
+import { WorkoutTableComponent } from "./components/WorkoutTable/WorkoutTable.component.tsx";
+import { useDispatch } from "react-redux";
 import {
   setHasBikeErg,
   setHasRowErg,
-  setHasSkiErg
+  setHasSkiErg,
 } from "./store/ergDataSlice";
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
 
-const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
+const csvFiles = ["/concept2-season-2024.csv", "/concept2-season-2025.csv"];
 const TEST_MODE = true;
 
 const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   bestDistance: {
     value: 0,
-    date: '',
-    workoutId: '',
+    date: "",
+    workoutId: "",
   },
   bestPace: {
-    value: '999:00.0',
-    date: '',
-    workoutId: '',
+    value: "999:00.0",
+    date: "",
+    workoutId: "",
   },
   bestStroke: {
     value: 0,
-    date: '',
-    workoutId: '',
+    date: "",
+    workoutId: "",
   },
   bestWorkTime: {
     value: 0,
-    date: '',
-    workoutId: '',
+    date: "",
+    workoutId: "",
   },
   workDistanceSum: 0,
   workTimeSum: 0,
@@ -65,26 +73,42 @@ const workDistanceSums: WorkDistanceSumsIF = {
   rowErg: 0,
   bikeErg: 0,
   skiErg: 0,
-}
+};
 
 function App() {
   const dispatch = useDispatch();
 
-  const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
+  const MONTH_NAMES = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ] as const;
 
   const [isDoneLoading, setIsDoneLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
-  const [unfilteredRowData, setUnfilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
+  const [unfilteredRowData, setUnfilteredRowData] = useState<
+    ParsedCSVRowDataIF[]
+  >([]);
   const [bests, setBests] = useState({});
   const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
   const [totalMeters, setTotalMeters] = useState<number>(0);
 
   useEffect(() => {
-    if (TEST_MODE) { // use sample data (my own) to populate the page
+    if (TEST_MODE) {
+      // use sample data (my own) to populate the page
       const fetchData = async () => {
         const filePromises = _.map(csvFiles, (fileName) =>
-          fetchLocalCSVFile(fileName)
+          fetchLocalCSVFile(fileName),
         );
 
         const files = await Promise.all(filePromises);
@@ -118,16 +142,16 @@ function App() {
       console.log(e);
       return null;
     }
-  }
+  };
 
   const handleCSVInput = (payload: File | null) => {
     setFile(payload);
-  }
+  };
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     parseCSVIntoChartData(file);
-  }
+  };
 
   const localDistanceTrendsRow: DateAndDistanceIF[] = [];
   const localPaceTrendsRow: DateAndPaceIF[] = [];
@@ -156,7 +180,8 @@ function App() {
             .filter((row: (string | number)[]) => row.length > 1)
             .orderBy((row: (string | number)[]) => row[1]) // date
             .map((row: (string | number)[]) => {
-              const ergType = String(row[19]).charAt(0).toLowerCase() + String(row[19]).slice(1) as "bikeErg" | "rowErg" | "skiErg";
+              const ergType = (String(row[19]).charAt(0).toLowerCase() +
+                String(row[19]).slice(1)) as "bikeErg" | "rowErg" | "skiErg";
 
               // row data from the CSV ("row" as in table rows, not RowErg)
               const parsedCSVRowData: ParsedCSVRowDataIF = {
@@ -178,10 +203,11 @@ function App() {
                 dragFactor: Number(row[16]),
                 ranked: Boolean(row[20]),
                 id: String(row[0]),
-              }
+              };
 
               // add these meters to the sum
-              localMetersSum += parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
+              localMetersSum +=
+                parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
 
               // build "bests" data object
               const monthIdx = getMonthNumber(parsedCSVRowData.date) - 1;
@@ -207,53 +233,67 @@ function App() {
               const localErgType = localBests?.[monthName]?.[ergType];
               if (localErgType) {
                 // Update best distance, if better
-                if (parsedCSVRowData.workDistance > Number(localErgType.bestDistance.value ?? 0)) {
-                  localErgType.bestDistance.value = parsedCSVRowData.workDistance;
+                if (
+                  parsedCSVRowData.workDistance >
+                  Number(localErgType.bestDistance.value ?? 0)
+                ) {
+                  localErgType.bestDistance.value =
+                    parsedCSVRowData.workDistance;
                   localErgType.bestDistance.date = parsedCSVRowData.date;
                   localErgType.bestDistance.workoutId = parsedCSVRowData.id;
                 }
 
-                  // Update best pace, if better
-                  if (parseTimeToMilliseconds(parsedCSVRowData.pace) < parseTimeToMilliseconds(String(localErgType.bestPace.value))) {
-                    localErgType.bestPace.value = parsedCSVRowData.pace;
-                    localErgType.bestPace.date = parsedCSVRowData.date;
-                    localErgType.bestPace.workoutId = parsedCSVRowData.id;
-                  }
-
-                  // Update best strokeRate, if better
-                  if (parsedCSVRowData.strokeRate > Number(localErgType.bestStroke.value)) {
-                    localErgType.bestStroke.value = parsedCSVRowData.strokeRate;
-                    localErgType.bestStroke.date = parsedCSVRowData.date;
-                    localErgType.bestStroke.workoutId = parsedCSVRowData.id;
-                  }
-
-                  // Update best workTime, if better
-                  if (Number(parsedCSVRowData.workTime) > Number(localErgType.bestWorkTime.value)) {
-                    localErgType.bestWorkTime.value = parsedCSVRowData.workTime;
-                    localErgType.bestWorkTime.date = parsedCSVRowData.date;
-                    localErgType.bestWorkTime.workoutId = parsedCSVRowData.id;
-                  }
+                // Update best pace, if better
+                if (
+                  parseTimeToMilliseconds(parsedCSVRowData.pace) <
+                  parseTimeToMilliseconds(String(localErgType.bestPace.value))
+                ) {
+                  localErgType.bestPace.value = parsedCSVRowData.pace;
+                  localErgType.bestPace.date = parsedCSVRowData.date;
+                  localErgType.bestPace.workoutId = parsedCSVRowData.id;
                 }
 
-              // add to "distanceTrends" object
-              const newDistance: { date: string, distance: number } = {
-                date: parsedCSVRowData.date,
-                distance: parsedCSVRowData.workDistance + parsedCSVRowData.restDistance,
+                // Update best strokeRate, if better
+                if (
+                  parsedCSVRowData.strokeRate >
+                  Number(localErgType.bestStroke.value)
+                ) {
+                  localErgType.bestStroke.value = parsedCSVRowData.strokeRate;
+                  localErgType.bestStroke.date = parsedCSVRowData.date;
+                  localErgType.bestStroke.workoutId = parsedCSVRowData.id;
+                }
+
+                // Update best workTime, if better
+                if (
+                  Number(parsedCSVRowData.workTime) >
+                  Number(localErgType.bestWorkTime.value)
+                ) {
+                  localErgType.bestWorkTime.value = parsedCSVRowData.workTime;
+                  localErgType.bestWorkTime.date = parsedCSVRowData.date;
+                  localErgType.bestWorkTime.workoutId = parsedCSVRowData.id;
+                }
               }
+
+              // add to "distanceTrends" object
+              const newDistance: { date: string; distance: number } = {
+                date: parsedCSVRowData.date,
+                distance:
+                  parsedCSVRowData.workDistance + parsedCSVRowData.restDistance,
+              };
               // add to "paceTrends" object
-              const newPace: { date: string, pace: number } = {
+              const newPace: { date: string; pace: number } = {
                 date: parsedCSVRowData.date,
                 pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
-              }
+              };
               // add to "workTimeTrends" object
-              const newWorkTime: { date: string, workTime: number } = {
+              const newWorkTime: { date: string; workTime: number } = {
                 date: parsedCSVRowData.date,
                 workTime: parsedCSVRowData.workTime,
-              }
+              };
 
               const best = localBests[monthName];
 
-              if (ergType === 'rowErg') {
+              if (ergType === "rowErg") {
                 dispatch(setHasRowErg());
                 localDistanceTrendsRow.push(newDistance);
                 localPaceTrendsRow.push(newPace);
@@ -262,15 +302,22 @@ function App() {
                   best.rowErgCount = best.rowErgCount + 1;
                   best.rowErgDates[parsedCSVRowData.day] = {
                     date: parsedCSVRowData.date,
-                    ergType: 'RowErg',
-                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    ergType: "RowErg",
+                    distance: getNumberWithCommas(
+                      parsedCSVRowData.workDistance,
+                    ),
                     time: String(parsedCSVRowData.workTime),
                   };
-                  best.rowErg.workDistanceSum = best.rowErg.workDistanceSum + parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
-                  best.rowErg.workTimeSum = best.rowErg.workTimeSum + parsedCSVRowData.workTime;
-                  workDistanceSums.rowErg = workDistanceSums.rowErg + parsedCSVRowData.workDistance;
+                  best.rowErg.workDistanceSum =
+                    best.rowErg.workDistanceSum +
+                    parsedCSVRowData.workDistance +
+                    parsedCSVRowData.restDistance;
+                  best.rowErg.workTimeSum =
+                    best.rowErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.rowErg =
+                    workDistanceSums.rowErg + parsedCSVRowData.workDistance;
                 }
-              } else if (ergType === 'bikeErg') {
+              } else if (ergType === "bikeErg") {
                 dispatch(setHasBikeErg());
                 localDistanceTrendsBike.push(newDistance);
                 localPaceTrendsBike.push(newPace);
@@ -279,15 +326,21 @@ function App() {
                   best.bikeErgCount = best.bikeErgCount + 1;
                   best.bikeErgDates[parsedCSVRowData.day] = {
                     date: parsedCSVRowData.date,
-                    ergType: 'RowErg',
-                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    ergType: "RowErg",
+                    distance: getNumberWithCommas(
+                      parsedCSVRowData.workDistance,
+                    ),
                     time: String(parsedCSVRowData.workTime),
                   };
-                  best.bikeErg.workDistanceSum = best.bikeErg.workDistanceSum + parsedCSVRowData.workDistance;
-                  best.bikeErg.workTimeSum = best.bikeErg.workTimeSum + parsedCSVRowData.workTime;
-                  workDistanceSums.bikeErg = workDistanceSums.bikeErg + parsedCSVRowData.workDistance;
+                  best.bikeErg.workDistanceSum =
+                    best.bikeErg.workDistanceSum +
+                    parsedCSVRowData.workDistance;
+                  best.bikeErg.workTimeSum =
+                    best.bikeErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.bikeErg =
+                    workDistanceSums.bikeErg + parsedCSVRowData.workDistance;
                 }
-              } else if (ergType === 'skiErg') {
+              } else if (ergType === "skiErg") {
                 dispatch(setHasSkiErg());
                 localDistanceTrendsSki.push(newDistance);
                 localPaceTrendsSki.push(newPace);
@@ -296,21 +349,27 @@ function App() {
                   best.skiErgCount = best.skiErgCount + 1;
                   best.skiErgDates[parsedCSVRowData.day] = {
                     date: parsedCSVRowData.date,
-                    ergType: 'RowErg',
-                    distance: getNumberWithCommas(parsedCSVRowData.workDistance),
+                    ergType: "RowErg",
+                    distance: getNumberWithCommas(
+                      parsedCSVRowData.workDistance,
+                    ),
                     time: String(parsedCSVRowData.workTime),
                   };
-                  best.skiErg.workDistanceSum = best.skiErg.workDistanceSum + parsedCSVRowData.workDistance;
-                  best.skiErg.workTimeSum = best.skiErg.workTimeSum + parsedCSVRowData.workTime;
-                  workDistanceSums.skiErg = workDistanceSums.skiErg + parsedCSVRowData.workDistance;
+                  best.skiErg.workDistanceSum =
+                    best.skiErg.workDistanceSum + parsedCSVRowData.workDistance;
+                  best.skiErg.workTimeSum =
+                    best.skiErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.skiErg =
+                    workDistanceSums.skiErg + parsedCSVRowData.workDistance;
                 }
               } else {
-                console.log("Unsupported erg type found")
+                console.log("Unsupported erg type found");
               }
 
-                combinedUnfilteredRowData.push(parsedCSVRowData);
-                return parsedCSVRowData;
-              }).value();
+              combinedUnfilteredRowData.push(parsedCSVRowData);
+              return parsedCSVRowData;
+            })
+            .value();
 
           setBests(localBests);
           setTotalMeters(localMetersSum);
@@ -329,16 +388,16 @@ function App() {
               rowErg: localWorkTimeTrendsRow,
               bikeErg: localWorkTimeTrendsBike,
               skiErg: localWorkTimeTrendsSki,
-            }
-          })
+            },
+          });
 
           setUnfilteredRowData(combinedUnfilteredRowData);
-        }
+        },
       });
     } else {
-      console.log("No file")
+      console.log("No file");
     }
-  }
+  };
 
   const UploadFile = () => (
     <form onSubmit={handleFormSubmit}>
@@ -349,16 +408,19 @@ function App() {
         justify="flex-start"
         align="flex-end"
         direction="row"
-        wrap="wrap">
+        wrap="wrap"
+      >
         <FileInput
           label="Upload Concept2 CSV data"
           description="Download from official site"
-          placeholder={file ? file['name'] : "Click to choose .csv file"}
+          placeholder={file ? file["name"] : "Click to choose .csv file"}
           accept="csv"
           onChange={handleCSVInput}
           clearable
         />
-        <Button type={"submit"} disabled={!file}>Upload</Button>
+        <Button type={"submit"} disabled={!file}>
+          Upload
+        </Button>
       </Flex>
     </form>
   );
@@ -366,50 +428,63 @@ function App() {
   return (
     <MantineProvider defaultColorScheme="dark">
       <div className={"app-container"}>
-
         <Grid className={"pad-left pad-right"}>
           <Grid.Col span={12}>
             <div className={"app-title"}>
               <h2>C2 Erg Bests</h2>
             </div>
-            <UploadFile/>
-            <Divider/>
+            <UploadFile />
+            <Divider />
 
             <div className={"pad-top pad-bottom"}>
-              <Radio className={"pad-bottom"} label={"Calendar year (Jan-Dec)"} checked={true} disabled />
-              <Radio className={"pad-bottom"} label={"Concept2 season (May-April)"} checked={false} disabled />
+              <Radio
+                className={"pad-bottom"}
+                label={"Calendar year (Jan-Dec)"}
+                checked={true}
+                disabled
+              />
+              <Radio
+                className={"pad-bottom"}
+                label={"Concept2 season (May-April)"}
+                checked={false}
+                disabled
+              />
               <Radio label={"Last 12 months"} checked={false} disabled />
             </div>
 
-            {unfilteredRowData.length === 0 && <p>Upload your 'concept2-season-2024.csv' from the erg site</p>}
+            {unfilteredRowData.length === 0 && (
+              <p>Upload your 'concept2-season-2024.csv' from the erg site</p>
+            )}
             {unfilteredRowData.length > 0 && (
+              <div>
                 <div>
-                  <div>You completed {unfilteredRowData.length} sessions in 2024 🥇</div>
-                  <div>You completed {getFormattedDistanceString(totalMeters, false)} meters this calendar year!</div>
-                </div>)
-            }
+                  You completed {unfilteredRowData.length} sessions in 2024 🥇
+                </div>
+                <div>
+                  You completed {getFormattedDistanceString(totalMeters, false)}{" "}
+                  meters this calendar year!
+                </div>
+              </div>
+            )}
 
-          <ErgProportions workDistanceSums={workDistanceSums} />
+            <ErgProportions workDistanceSums={workDistanceSums} />
 
             {/** Month cards **/}
-            {isDoneLoading ? <MonthCards bests={bests}/> : <>Loading...</>}
+            {isDoneLoading ? <MonthCards bests={bests} /> : <>Loading...</>}
 
             {/** Trend charts **/}
-            <br/>
-            {trends !== undefined &&
-                <TrendsComponent trends={trends} />}
+            <br />
+            {trends !== undefined && <TrendsComponent trends={trends} />}
 
             {/** AG-grid table with workout details **/}
-            <WorkoutTableComponent unfilteredRowData={unfilteredRowData}/>
-            </Grid.Col>
-          </Grid>
-        </div>
-
-      <div className={"bottom-credits"}>
-        App by Mandi Burley, 2024
+            <WorkoutTableComponent unfilteredRowData={unfilteredRowData} />
+          </Grid.Col>
+        </Grid>
       </div>
+
+      <div className={"bottom-credits"}>App by Mandi Burley, 2024</div>
     </MantineProvider>
-  )
+  );
 }
 
-export default App
+export default App;

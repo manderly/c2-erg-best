@@ -1,10 +1,10 @@
-export type ErgType = 'rowErg' | 'skiErg' | 'bikeErg';
+export type ErgType = "rowErg" | "skiErg" | "bikeErg";
 
 export type DisplayRowType = {
-  label: string,
-  date: string,
-  type: string,
-}
+  label: string;
+  date: string;
+  type: string;
+};
 
 export interface ParsedCSVRowDataIF {
   dateRaw: string;
@@ -28,39 +28,51 @@ export interface ParsedCSVRowDataIF {
 }
 
 export interface MonthDataIF {
-  name: string,
-  year: number,
-  rowErg: BestDataForErgIF,
-  bikeErg: BestDataForErgIF,
-  skiErg: BestDataForErgIF,
-  rowErgCount: number,
-  bikeErgCount: number,
-  skiErgCount: number,
-  rowErgDates: CalendarDataIF[] | undefined[],
-  bikeErgDates: CalendarDataIF[] | undefined[],
-  skiErgDates: CalendarDataIF[] | undefined[],
+  name: string;
+  year: number;
+  rowErg: BestDataForErgIF;
+  bikeErg: BestDataForErgIF;
+  skiErg: BestDataForErgIF;
+  rowErgCount: number;
+  bikeErgCount: number;
+  skiErgCount: number;
+  rowErgDates: CalendarDataIF[] | undefined[];
+  bikeErgDates: CalendarDataIF[] | undefined[];
+  skiErgDates: CalendarDataIF[] | undefined[];
 }
-export type Months = "January" | "February" | "March" | "April" | "May" | "June" | "July" | "August" | "September" | "October" | "November" | "December";
+export type Months =
+  | "January"
+  | "February"
+  | "March"
+  | "April"
+  | "May"
+  | "June"
+  | "July"
+  | "August"
+  | "September"
+  | "October"
+  | "November"
+  | "December";
 export type LocalBests = {
   [key in Months]?: MonthDataIF;
 };
 
 export interface TrendsDataIF {
   distance: {
-    rowErg: DateAndDistanceIF[],
-    bikeErg: DateAndDistanceIF[],
-    skiErg: DateAndDistanceIF[],
-  },
+    rowErg: DateAndDistanceIF[];
+    bikeErg: DateAndDistanceIF[];
+    skiErg: DateAndDistanceIF[];
+  };
   pace: {
-    rowErg: DateAndPaceIF[],
-    bikeErg: DateAndPaceIF[],
-    skiErg: DateAndPaceIF[],
-  }
+    rowErg: DateAndPaceIF[];
+    bikeErg: DateAndPaceIF[];
+    skiErg: DateAndPaceIF[];
+  };
   time: {
-    rowErg: DateAndWorkTimeIF[],
-    bikeErg: DateAndWorkTimeIF[],
-    skiErg: DateAndWorkTimeIF[],
-  }
+    rowErg: DateAndWorkTimeIF[];
+    bikeErg: DateAndWorkTimeIF[];
+    skiErg: DateAndWorkTimeIF[];
+  };
 }
 
 export interface DateAndDistanceIF {
@@ -69,18 +81,18 @@ export interface DateAndDistanceIF {
 }
 
 export interface DateAndPaceIF {
-  date: string,
-  pace: number
+  date: string;
+  pace: number;
 }
 
 export interface DateAndWorkTimeIF {
-  date: string,
-  workTime: number
+  date: string;
+  workTime: number;
 }
 
 export type WorkoutDataType = {
-  data: DisplayRowType,
-}
+  data: DisplayRowType;
+};
 
 export interface BestWorkoutInCategoryIF {
   value: number | string;
@@ -97,8 +109,9 @@ export interface BestDataForErgIF {
   workTimeSum: number;
 }
 
-export interface RowIF { // ag-grid row, not erg row
-  valueFormatted: string,
+export interface RowIF {
+  // ag-grid row, not erg row
+  valueFormatted: string;
 }
 
 export interface CalendarDataIF {

@@ -1,6 +1,15 @@
-import {Flex} from "@mantine/core";
-import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import {DateAndPaceIF, DateAndDistanceIF} from "../../types/types.ts";
+import { Flex } from "@mantine/core";
+import {
+  BarChart,
+  Bar,
+  Rectangle,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import { DateAndPaceIF, DateAndDistanceIF } from "../../types/types.ts";
 
 interface BarChartComponentIF {
   title: string;
@@ -10,7 +19,13 @@ interface BarChartComponentIF {
   tickFormatter: (item: number | string | undefined) => string;
 }
 
-export const BarChartComponent: React.FC<BarChartComponentIF> = ({title, data, dataKey, hexFill, tickFormatter}) => {
+export const BarChartComponent: React.FC<BarChartComponentIF> = ({
+  title,
+  data,
+  dataKey,
+  hexFill,
+  tickFormatter,
+}) => {
   return (
     <>
       <h3>{title}</h3>
@@ -33,17 +48,18 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({title, data, d
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3"/>
-          <XAxis dataKey="date"/>
-          <YAxis
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis dataKey={dataKey} tickFormatter={tickFormatter} />
+          <Tooltip />
+          <Legend />
+          <Bar
             dataKey={dataKey}
-            tickFormatter={tickFormatter}
+            fill={hexFill}
+            activeBar={<Rectangle fill="pink" stroke="blue" />}
           />
-          <Tooltip/>
-          <Legend/>
-          <Bar dataKey={dataKey} fill={hexFill} activeBar={<Rectangle fill="pink" stroke="blue"/>}/>
         </BarChart>
       </Flex>
     </>
-  )
+  );
 };

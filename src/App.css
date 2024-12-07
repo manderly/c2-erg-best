@@ -8,7 +8,7 @@ a {
 }
 
 .app-title h2 {
-  color: #6690BB;
+  color: #6690bb;
   font-size: 2.6em;
 }
 
@@ -17,8 +17,10 @@ a {
   font-size: 2.2em;
 }
 
-h2, h3, h4 {
-  margin:0;
+h2,
+h3,
+h4 {
+  margin: 0;
 }
 
 .mb-10 {
@@ -26,28 +28,28 @@ h2, h3, h4 {
 }
 
 .pad-top {
-  padding-top:16px;
+  padding-top: 16px;
 }
 
 .pad-left {
-  padding-left:20px;
+  padding-left: 20px;
 }
 
 .pad-right {
-  padding-right:20px;
+  padding-right: 20px;
 }
 
 .grid-challenges {
-  height:100vh;
-  border-left:1px solid blue;
+  height: 100vh;
+  border-left: 1px solid blue;
 }
 
 .upload-file {
-  width:100%;
+  width: 100%;
 }
 
 .filter-data {
-  margin-bottom:20px;
+  margin-bottom: 20px;
 }
 
 .month-cards {
@@ -57,8 +59,8 @@ h2, h3, h4 {
 }
 
 .month-card {
-  width:100%;
-  border:1px solid #324d67;
+  width: 100%;
+  border: 1px solid #324d67;
   background-color: #002142 !important;
 }
 
@@ -72,12 +74,12 @@ h2, h3, h4 {
 }
 
 .current-month {
-  border:1px solid #89CFF0;
+  border: 1px solid #89cff0;
 }
 
 .month-card ul {
   list-style: none;
-  padding-left:0;
+  padding-left: 0;
 }
 
 .view-workout-link {
@@ -85,7 +87,7 @@ h2, h3, h4 {
 }
 
 .best-data {
-  padding-bottom:16px;
+  padding-bottom: 16px;
 }
 
 .best-data-value {
@@ -99,20 +101,20 @@ h2, h3, h4 {
 
 .erg-type-label {
   color: #333;
-  padding:6px;
-  text-align:center;
+  padding: 6px;
+  text-align: center;
 }
 
 .RowErg-label {
-  background-color:#afbd22;
+  background-color: #afbd22;
 }
 
 .BikeErg-label {
-  background-color:#B6C7D9;
+  background-color: #b6c7d9;
 }
 
 .SkiErg-label {
-  background-color:#DC3E26;
+  background-color: #dc3e26;
 }
 
 .tiny-units {
@@ -122,18 +124,18 @@ h2, h3, h4 {
 .bottom-credits {
   font-size: var(--mantine-font-size-sm);
   margin: 15px 0;
-  width:100%;
-  padding-left:15px;
-  color: #6690BB;
+  width: 100%;
+  padding-left: 15px;
+  color: #6690bb;
 }
 
 .month-name {
   font-weight: bold;
-  font-size:22px;
+  font-size: 22px;
 }
 
 .year-name {
-  font-size:14px;
+  font-size: 14px;
 }
 
 .radio-group-inline {
@@ -154,15 +156,15 @@ h2, h3, h4 {
 .radio-group div {
   display: flex;
   align-items: start;
-  margin-left:5px;
+  margin-left: 5px;
 }
 
 .radio-group .mantine-Radio-label {
-  padding-left:1px !important;
+  padding-left: 1px !important;
 }
 
 .no-data-div {
-  margin-top:10px;
+  margin-top: 10px;
 }
 
 .erg-data-bg {
@@ -175,20 +177,20 @@ h2, h3, h4 {
 }
 
 .erg-data-bg-BikeErg {
-  border: 1px solid #B6C7D9;
+  border: 1px solid #b6c7d9;
 }
 
 .erg-data-bg-SkiErg {
-  border: 1px solid #DC3E26;
+  border: 1px solid #dc3e26;
 }
 
 .calendar {
-  width:100%;
-  font-size:12px;
+  width: 100%;
+  font-size: 12px;
 }
 
 .center-calendar-date {
-  text-align:center;
+  text-align: center;
 }
 
 .row-this-day {
@@ -198,22 +200,22 @@ h2, h3, h4 {
 
 .bike-this-day {
   color: black;
-  background-color: #B6C7D9;
+  background-color: #b6c7d9;
 }
 
 .ski-this-day {
   color: black;
-  background-color: #DC3E26;
+  background-color: #dc3e26;
 }
 
 .row-and-bike-this-day {
   color: black;
-  background-image: linear-gradient(-45deg, #afbd22 50%, #B6C7D9 50% );
+  background-image: linear-gradient(-45deg, #afbd22 50%, #b6c7d9 50%);
 }
 
 .day-label {
-  font-size:0.6em;
-  color:#7f99b2;
+  font-size: 0.6em;
+  color: #7f99b2;
 }
 
 .recharts-wrapper {
@@ -232,32 +234,32 @@ h2, h3, h4 {
   width: 100%;
   flex-direction: row;
   height: 22px;
-  margin-bottom:10px;
-  font-size:14px;
-  color:#1a1a1a;
-  font-weight:bold;
-  text-align:center;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: bold;
+  text-align: center;
 }
 
 .row-erg-proportion {
   background-color: #afbd22;
-  border-right:3px solid #002142;
+  border-right: 3px solid #002142;
 }
 
 .bike-erg-proportion {
-  background-color: #B6C7D9;
-  border-right:3px solid #002142;
+  background-color: #b6c7d9;
+  border-right: 3px solid #002142;
 }
 
 .ski-erg-proportion {
-  background-color: #DC3E26;
+  background-color: #dc3e26;
 }
 
 .best-value-with-tiny-units {
   display: flex;
   flex-direction: row;
   align-items: baseline;
-  gap:2px;
+  gap: 2px;
 }
 
 @media only screen and (max-width: 1000px) {
