@@ -93,3 +93,11 @@ export const getNumberWithCommas = (input: number | string): string => {
 
   return number.toLocaleString('en-US');
 }
+
+export const getFormattedErgName = (erg: 'row' | 'bike' | 'ski'): string => {
+  return erg[0].toUpperCase() + erg.slice(1).toLowerCase() + "Erg";
+}
+
+export const getFullDate = (input: string) => {
+  return format(new Date(input), "EEEE, MMM d, yyyy");
+}

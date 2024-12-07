@@ -1,7 +1,7 @@
 import {useState, useEffect, FormEvent} from 'react';
 import './App.css'
 import '@mantine/core/styles.css';
-import {Divider, FileInput, MantineProvider} from '@mantine/core';
+import {Divider, FileInput, MantineProvider, Radio} from '@mantine/core';
 import { Grid, Button, Flex } from '@mantine/core';
 
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
@@ -11,7 +11,7 @@ import _ from 'lodash';
 import {
   getDayOfMonth,
   getFormattedDate,
-  getFormattedDistance,
+  getFormattedDistance, getFormattedDistanceString,
   getFormattedTime,
   getMonthNumber, getNumberWithCommas, getRowYear, parseTimeToMilliseconds
 } from "./services/formatting_utils";
@@ -21,7 +21,7 @@ import {
   ErgType,
   ParsedCSVRowDataIF,
   DateAndDistanceIF,
-  DateAndPaceIF, LocalBests, TrendsDataIF, DateAndWorkTimeIF
+  DateAndPaceIF, LocalBests, TrendsDataIF, DateAndWorkTimeIF, WorkDistanceSumsIF
 } from "./types/types.ts";
 import {TrendsComponent} from "./components/TrendCharts/Trends.component.tsx";
 import {WorkoutTableComponent} from "./components/WorkoutTable/WorkoutTable.component.tsx";
@@ -31,6 +31,7 @@ import {
   setHasRowErg,
   setHasSkiErg
 } from "./store/ergDataSlice";
+import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
 
 const csvFiles = ['/concept2-season-2024.csv', '/concept2-season-2025.csv'];
 const TEST_MODE = true;
@@ -60,6 +61,12 @@ const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   workTimeSum: 0,
 };
 
+const workDistanceSums: WorkDistanceSumsIF = {
+  rowErg: 0,
+  bikeErg: 0,
+  skiErg: 0,
+}
+
 function App() {
   const dispatch = useDispatch();
 
@@ -71,6 +78,7 @@ function App() {
   const [unfilteredRowData, setUnfilteredRowData] = useState<ParsedCSVRowDataIF[]>([]);
   const [bests, setBests] = useState({});
   const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
+  const [totalMeters, setTotalMeters] = useState<number>(0);
 
   useEffect(() => {
     if (TEST_MODE) { // use sample data (my own) to populate the page
@@ -135,6 +143,7 @@ function App() {
 
   const combinedUnfilteredRowData: ParsedCSVRowDataIF[] = [];
   const localBests: LocalBests = {};
+  let localMetersSum = 0;
 
   const parseCSVIntoChartData = (file: File | null) => {
     if (file) {
@@ -142,14 +151,14 @@ function App() {
         complete: function (results: ParseResult<string[]>) {
           results.data.shift();
 
-          // get all the row data line by line from the csv
+          // process the row data line by line from the csv
           _.chain(results.data)
             .filter((row: (string | number)[]) => row.length > 1)
             .orderBy((row: (string | number)[]) => row[1]) // date
             .map((row: (string | number)[]) => {
               const ergType = String(row[19]).charAt(0).toLowerCase() + String(row[19]).slice(1) as "bikeErg" | "rowErg" | "skiErg";
 
-              // rowData from the CSV
+              // row data from the CSV ("row" as in table rows, not RowErg)
               const parsedCSVRowData: ParsedCSVRowDataIF = {
                 dateRaw: String(row[1]),
                 date: getFormattedDate(String(row[1])),
@@ -170,6 +179,9 @@ function App() {
                 ranked: Boolean(row[20]),
                 id: String(row[0]),
               }
+
+              // add these meters to the sum
+              localMetersSum += parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
 
               // build "bests" data object
               const monthIdx = getMonthNumber(parsedCSVRowData.date) - 1;
@@ -226,7 +238,7 @@ function App() {
               // add to "distanceTrends" object
               const newDistance: { date: string, distance: number } = {
                 date: parsedCSVRowData.date,
-                distance: parsedCSVRowData.workDistance,
+                distance: parsedCSVRowData.workDistance + parsedCSVRowData.restDistance,
               }
               // add to "paceTrends" object
               const newPace: { date: string, pace: number } = {
@@ -239,7 +251,6 @@ function App() {
                 workTime: parsedCSVRowData.workTime,
               }
 
-              // increment workout count
               const best = localBests[monthName];
 
               if (ergType === 'rowErg') {
@@ -255,8 +266,9 @@ function App() {
                     distance: getNumberWithCommas(parsedCSVRowData.workDistance),
                     time: String(parsedCSVRowData.workTime),
                   };
-                  best.rowErg.workDistanceSum = best.rowErg.workDistanceSum + parsedCSVRowData.workDistance;
+                  best.rowErg.workDistanceSum = best.rowErg.workDistanceSum + parsedCSVRowData.workDistance + parsedCSVRowData.restDistance;
                   best.rowErg.workTimeSum = best.rowErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.rowErg = workDistanceSums.rowErg + parsedCSVRowData.workDistance;
                 }
               } else if (ergType === 'bikeErg') {
                 dispatch(setHasBikeErg());
@@ -273,6 +285,7 @@ function App() {
                   };
                   best.bikeErg.workDistanceSum = best.bikeErg.workDistanceSum + parsedCSVRowData.workDistance;
                   best.bikeErg.workTimeSum = best.bikeErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.bikeErg = workDistanceSums.bikeErg + parsedCSVRowData.workDistance;
                 }
               } else if (ergType === 'skiErg') {
                 dispatch(setHasSkiErg());
@@ -289,6 +302,7 @@ function App() {
                   };
                   best.skiErg.workDistanceSum = best.skiErg.workDistanceSum + parsedCSVRowData.workDistance;
                   best.skiErg.workTimeSum = best.skiErg.workTimeSum + parsedCSVRowData.workTime;
+                  workDistanceSums.skiErg = workDistanceSums.skiErg + parsedCSVRowData.workDistance;
                 }
               } else {
                 console.log("Unsupported erg type found")
@@ -299,6 +313,7 @@ function App() {
               }).value();
 
           setBests(localBests);
+          setTotalMeters(localMetersSum);
           setTrends({
             distance: {
               rowErg: localDistanceTrendsRow,
@@ -360,8 +375,21 @@ function App() {
             <UploadFile/>
             <Divider/>
 
+            <div className={"pad-top pad-bottom"}>
+              <Radio className={"pad-bottom"} label={"Calendar year (Jan-Dec)"} checked={true} disabled />
+              <Radio className={"pad-bottom"} label={"Concept2 season (May-April)"} checked={false} disabled />
+              <Radio label={"Last 12 months"} checked={false} disabled />
+            </div>
+
             {unfilteredRowData.length === 0 && <p>Upload your 'concept2-season-2024.csv' from the erg site</p>}
-            {unfilteredRowData.length > 0 && <p>You completed {unfilteredRowData.length} sessions this calendar year 🥇</p>}
+            {unfilteredRowData.length > 0 && (
+                <div>
+                  <div>You completed {unfilteredRowData.length} sessions in 2024 🥇</div>
+                  <div>You completed {getFormattedDistanceString(totalMeters, false)} meters this calendar year!</div>
+                </div>)
+            }
+
+          <ErgProportions workDistanceSums={workDistanceSums} />
 
             {/** Month cards **/}
             {isDoneLoading ? <MonthCards bests={bests}/> : <>Loading...</>}

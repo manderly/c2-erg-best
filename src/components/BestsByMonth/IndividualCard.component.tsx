@@ -9,6 +9,7 @@ import { ErgData } from './ErgData.tsx';
 import CalendarComponent from "./Calendar.component.tsx";
 import {useSelector} from "react-redux";
 import {RootState} from "../../store/store.ts";
+import TotalsComponent from "../TotalsComponent.tsx";
 
 interface IndividualCardIF {
   month: string;
@@ -29,11 +30,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({ month, data }) =>
               <span className={"year-name"}>{data.year === 0 ? 'No data yet' : data.year}</span>
           </div>
           <CalendarComponent month={month} data={data}/>
-          <div className={"pad-bottom"}>
-              <div className={"totals-label-and-value"}>Total sessions: <div>{combinedCount}</div></div>
-              <div className={"totals-label-and-value"}>Total meters: <div>{combinedMeters}</div></div>
-              <div className={"totals-label-and-value"}>Total time: <div>{combinedWorkTime}</div></div>
-          </div>
+          <TotalsComponent label={"Total"} sessions={combinedCount} meters={combinedMeters} workTime={combinedWorkTime}/>
           {ergDataState.hasRowErg &&
               <ErgData label="RowErg"
                        data={data.rowErg}

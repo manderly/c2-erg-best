@@ -96,7 +96,7 @@ const CalendarComponent: React.FC<CalendarIF> = ({month, data}) => {
   const cellsPerRow = 7;
 
   return (
-    <table className={"calendar pad-bottom"}>
+    <table className={"calendar"}>
       <tbody>
       {generateTableCells(totalCells, cellsPerRow, month, data)}
       </tbody>

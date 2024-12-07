@@ -107,3 +107,9 @@ export interface CalendarDataIF {
   distance: string;
   time: string;
 }
+
+export interface WorkDistanceSumsIF {
+  rowErg: number;
+  bikeErg: number;
+  skiErg: number;
+}
