@@ -91,6 +91,7 @@ export const parseTimeToMilliseconds = (timeString: string): number => {
   return resultDate.getTime();
 };
 
+// Transforms milliseconds back to pace, like "2:45"
 export const formatMillisecondsToTimestamp = (
   milliseconds: number | string | undefined,
 ): string => {
@@ -105,8 +106,14 @@ export const formatMillisecondsToTimestamp = (
   const seconds = date.getSeconds();
   const millisecondsRemaining = date.getMilliseconds();
 
+  // Pad seconds with a leading zero if it is a single digit
+  const paddedSeconds = seconds.toString().padStart(2, "0");
+
+  // Format milliseconds with trailing zeroes
+  const paddedMilliseconds = (millisecondsRemaining / 1000).toFixed(3).slice(2);
+
   // Format the timestamp string
-  return `${minutes}:${seconds}.${millisecondsRemaining}`;
+  return `${minutes}:${paddedSeconds}.${paddedMilliseconds}`;
 };
 
 export const getNumberWithCommas = (input: number | string): string => {
@@ -119,8 +126,16 @@ export const getNumberWithCommas = (input: number | string): string => {
   return number.toLocaleString("en-US");
 };
 
-export const getFormattedErgName = (erg: "row" | "bike" | "ski"): string => {
-  return erg[0].toUpperCase() + erg.slice(1).toLowerCase() + "Erg";
+export const getFormattedErgName = (
+  erg: "row" | "bike" | "ski" | "rowErg" | "bikeErg" | "skiErg",
+): string => {
+  if (erg === "row" || erg === "bike" || erg === "ski") {
+    return erg[0].toUpperCase() + erg.slice(1).toLowerCase() + "Erg";
+  } else if (erg === "rowErg" || erg === "bikeErg" || erg === "skiErg") {
+    return erg[0].toUpperCase() + erg.slice(1);
+  } else {
+    return erg;
+  }
 };
 
 export const getFullDate = (input: string) => {

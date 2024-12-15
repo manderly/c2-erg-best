@@ -1,4 +1,4 @@
-export type ErgType = "rowErg" | "skiErg" | "bikeErg";
+export type ErgType = "rowErg" | "bikeErg" | "skiErg";
 
 export type DisplayRowType = {
   label: string;
@@ -57,37 +57,47 @@ export type LocalBests = {
   [key in Months]?: MonthDataIF;
 };
 
+export interface TrendDataGroupedIF {
+  month: number;
+  value: number; // sum of meters or average pace in milliseconds
+  ergType: ErgType;
+  stat: "distance" | "pace";
+}
+
 export interface TrendsDataIF {
   distance: {
-    rowErg: DateAndDistanceIF[];
-    bikeErg: DateAndDistanceIF[];
-    skiErg: DateAndDistanceIF[];
+    rowErg: TrendDataGroupedIF[];
+    bikeErg: TrendDataGroupedIF[];
+    skiErg: TrendDataGroupedIF[];
   };
   pace: {
-    rowErg: DateAndPaceIF[];
-    bikeErg: DateAndPaceIF[];
-    skiErg: DateAndPaceIF[];
+    rowErg: TrendDataGroupedIF[];
+    bikeErg: TrendDataGroupedIF[];
+    skiErg: TrendDataGroupedIF[];
   };
   time: {
-    rowErg: DateAndWorkTimeIF[];
-    bikeErg: DateAndWorkTimeIF[];
-    skiErg: DateAndWorkTimeIF[];
+    rowErg: TrendDataGroupedIF[];
+    bikeErg: TrendDataGroupedIF[];
+    skiErg: TrendDataGroupedIF[];
   };
 }
 
 export interface DateAndDistanceIF {
   date: string;
   distance: number;
+  month: number;
 }
 
 export interface DateAndPaceIF {
   date: string;
   pace: number;
+  month: number;
 }
 
 export interface DateAndWorkTimeIF {
   date: string;
   workTime: number;
+  month: number;
 }
 
 export type WorkoutDataType = {

@@ -9,11 +9,13 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { DateAndPaceIF, DateAndDistanceIF } from "../../types/types.ts";
+import { TrendDataGroupedIF } from "../../types/types.ts";
+import { englishMonthsAbbreviations } from "../../consts/consts.ts";
+import { TrendTooltip } from "./TrendTooltip.component.tsx";
 
 interface BarChartComponentIF {
   title: string;
-  data: DateAndPaceIF[] | DateAndDistanceIF[];
+  data: TrendDataGroupedIF[];
   dataKey: string;
   hexFill: string;
   tickFormatter: (item: number | string | undefined) => string;
@@ -26,6 +28,10 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
   hexFill,
   tickFormatter,
 }) => {
+  const numberToMonthAbbreviation = (num: number) => {
+    return englishMonthsAbbreviations[num - 1];
+  };
+
   return (
     <>
       <h3>{title}</h3>
@@ -49,14 +55,14 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
+          <XAxis dataKey="month" tickFormatter={numberToMonthAbbreviation} />
           <YAxis dataKey={dataKey} tickFormatter={tickFormatter} />
-          <Tooltip />
+          <Tooltip content={<TrendTooltip />} />
           <Legend />
           <Bar
             dataKey={dataKey}
             fill={hexFill}
-            activeBar={<Rectangle fill="pink" stroke="blue" />}
+            activeBar={<Rectangle fill="#7f99b2" stroke="#ffffff" />}
           />
         </BarChart>
       </Flex>

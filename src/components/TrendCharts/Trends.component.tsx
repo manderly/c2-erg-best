@@ -83,7 +83,7 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
                 ? trends?.distance.skiErg
                 : []
         }
-        dataKey={"distance"}
+        dataKey={"value"}
         hexFill={getColorForErgType(chartErgType)}
         tickFormatter={getFormattedDistanceString}
       />
@@ -98,7 +98,7 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
                 ? trends?.pace.skiErg
                 : []
         }
-        dataKey={"pace"}
+        dataKey={"value"}
         hexFill={getColorForErgType(chartErgType)}
         tickFormatter={formatMillisecondsToTimestamp}
       />

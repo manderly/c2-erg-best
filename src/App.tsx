@@ -30,6 +30,7 @@ import {
   DateAndWorkTimeIF,
   WorkDistanceSumsIF,
   SessionDataIF,
+  TrendDataGroupedIF,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
 import { WorkoutTableComponent } from "./components/WorkoutTable/WorkoutTable.component.tsx";
@@ -40,6 +41,7 @@ import {
   setHasSkiErg,
 } from "./store/ergDataSlice";
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
+import { format } from "date-fns";
 
 const csvFiles = ["/concept2-season-2024.csv", "/concept2-season-2025.csv"];
 const TEST_MODE = true;
@@ -128,6 +130,46 @@ function App() {
     }
   }, []);
 
+  const groupTrendDataByMonth = (
+    data: DateAndDistanceIF[] | DateAndPaceIF[] | DateAndWorkTimeIF[],
+    stat: "distance" | "pace" | "workTime",
+    ergType: ErgType,
+  ): TrendDataGroupedIF[] => {
+    const grouped = _.groupBy(data, "month");
+    const allMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    if (stat === "distance") {
+      return allMonths.map((month) => ({
+        month: month,
+        value: grouped[month] ? _.sumBy(grouped[month], stat) : 0, // default to 0 if month has no data
+        ergType: ergType,
+        stat: "distance",
+      }));
+    } else if (stat === "pace") {
+      // sum the paces and average them (the average pace for January was xx:yy)
+      return allMonths.map((month) => {
+        const items = grouped[month] || []; // Get the grouped items for the month or an empty array
+        const total = _.sumBy(items, stat); // Sum the `pace` values
+        const count = items.length; // Count the number of items for the month
+        const average = count > 0 ? total / count : 0; // Calculate the average or default to 0
+
+        return {
+          month: month,
+          value: average,
+          ergType: ergType,
+          stat: "pace",
+        };
+      });
+    } else {
+      return allMonths.map((month) => ({
+        month: month,
+        value: 0,
+        ergType: ergType,
+        stat: "distance",
+      }));
+    }
+  };
+
   const getSessionData = (parsedCSVRowData: ParsedCSVRowDataIF) => {
     return {
       date: parsedCSVRowData.date,
@@ -191,7 +233,6 @@ function App() {
             .map((row: (string | number)[]) => {
               const ergType = (String(row[19]).charAt(0).toLowerCase() +
                 String(row[19]).slice(1)) as "bikeErg" | "rowErg" | "skiErg";
-
               // row data from the CSV ("row" as in table rows, not RowErg)
               const parsedCSVRowData: ParsedCSVRowDataIF = {
                 dateRaw: String(row[1]),
@@ -293,18 +334,21 @@ function App() {
                * Multiple workouts of the same type in the same day are aggregated
                * for the sake of calculating day-over-day trends
                **/
-              const newDistance: { date: string; distance: number } = {
+              const newDistance: DateAndDistanceIF = {
                 date: parsedCSVRowData.date,
                 distance:
                   parsedCSVRowData.workDistance + parsedCSVRowData.restDistance,
+                month: Number(format(parsedCSVRowData.date, "M")),
               };
-              const newPace: { date: string; pace: number } = {
+              const newPace: DateAndPaceIF = {
                 date: parsedCSVRowData.date,
                 pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
+                month: Number(format(parsedCSVRowData.date, "M")),
               };
-              const newWorkTime: { date: string; workTime: number } = {
+              const newWorkTime: DateAndWorkTimeIF = {
                 date: parsedCSVRowData.date,
                 workTime: parsedCSVRowData.workTime,
+                month: Number(format(parsedCSVRowData.date, "M")),
               };
 
               const month = localBests[monthName];
@@ -377,7 +421,7 @@ function App() {
                     workDistanceSums.skiErg + parsedCSVRowData.workDistance;
                 }
               } else {
-                console.log("Unsupported erg type found");
+                console.log("Unsupported erg type found: " + ergType);
               }
 
               combinedUnfilteredRowData.push(parsedCSVRowData);
@@ -387,21 +431,58 @@ function App() {
 
           setBests(localBests);
           setTotalMeters(localMetersSum);
+
           setTrends({
             distance: {
-              rowErg: localDistanceTrendsRow,
-              bikeErg: localDistanceTrendsBike,
-              skiErg: localDistanceTrendsSki,
+              rowErg: groupTrendDataByMonth(
+                localDistanceTrendsRow,
+                "distance",
+                "rowErg",
+              ),
+              bikeErg: groupTrendDataByMonth(
+                localDistanceTrendsBike,
+                "distance",
+                "bikeErg",
+              ),
+              skiErg: groupTrendDataByMonth(
+                localDistanceTrendsSki,
+                "distance",
+                "skiErg",
+              ),
             },
             pace: {
-              rowErg: localPaceTrendsRow,
-              bikeErg: localPaceTrendsBike,
-              skiErg: localPaceTrendsSki,
+              rowErg: groupTrendDataByMonth(
+                localPaceTrendsRow,
+                "pace",
+                "rowErg",
+              ),
+              bikeErg: groupTrendDataByMonth(
+                localPaceTrendsBike,
+                "pace",
+                "bikeErg",
+              ),
+              skiErg: groupTrendDataByMonth(
+                localPaceTrendsSki,
+                "pace",
+                "skiErg",
+              ),
             },
             time: {
-              rowErg: localWorkTimeTrendsRow,
-              bikeErg: localWorkTimeTrendsBike,
-              skiErg: localWorkTimeTrendsSki,
+              rowErg: groupTrendDataByMonth(
+                localWorkTimeTrendsRow,
+                "workTime",
+                "rowErg",
+              ),
+              bikeErg: groupTrendDataByMonth(
+                localWorkTimeTrendsBike,
+                "workTime",
+                "bikeErg",
+              ),
+              skiErg: groupTrendDataByMonth(
+                localWorkTimeTrendsSki,
+                "workTime",
+                "skiErg",
+              ),
             },
           });
 

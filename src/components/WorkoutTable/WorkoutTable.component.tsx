@@ -200,7 +200,7 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
 
   const { handleSubmit } = useForm();
 
-  const [startDate, setStartDate] = useState(subDays(new Date(), 120));
+  const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
 
   const [minimumDuration, setMinimumDuration] = useState("60");
@@ -336,7 +336,7 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
     <>
       <SearchFilters />
       <h2 className={"main-page-title"}>Logbook</h2>
-      {filteredRowData && (
+      {filteredRowData.length > 0 && (
         <>
           Showing {filteredRowData.length} of this season's{" "}
           {unfilteredRowData.length} workouts
