@@ -273,7 +273,7 @@ function App() {
   let localMetersSum = 0;
   let localErgTimeSum = 0;
 
-  const parseCSVFiles = (files: File[] | null[]) => {
+  const parseCSVFiles = (files: (File | null)[]) => {
     const localYears: string[] = [];
     if (files) {
       files.forEach((file) => {
@@ -577,7 +577,9 @@ function App() {
     <div className={"pad-bottom pad-left"}>
       <Radio.Group
         label="View options"
-        onChange={handleToggleCalendarViewMode}
+        onChange={(value: string) =>
+          handleToggleCalendarViewMode(value as ViewMode)
+        }
         description={"View data by calendar year or Concept2 season"}
         value={calendarViewMode}
       >
