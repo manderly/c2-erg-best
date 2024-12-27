@@ -1,4 +1,5 @@
 export type ErgType = "rowErg" | "bikeErg" | "skiErg";
+export type ViewMode = "concept2Season" | "calendarYear";
 
 export type DisplayRowType = {
   label: string;
@@ -10,6 +11,7 @@ export interface ParsedCSVRowDataIF {
   dateRaw: string;
   date: string;
   day: number;
+  year: number;
   startTime: string;
   type: ErgType;
   description: string;

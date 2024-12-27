@@ -5,7 +5,6 @@ import {
   Rectangle,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
 } from "recharts";
@@ -31,6 +30,7 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
   const numberToMonthAbbreviation = (num: number) => {
     return englishMonthsAbbreviations[num - 1];
   };
+  const ergType = data[0].ergType;
 
   return (
     <>
@@ -44,23 +44,23 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
         wrap="wrap"
       >
         <BarChart
-          width={1000}
+          width={1200}
           height={300}
           data={data}
           margin={{
             top: 5,
-            right: 30,
-            left: 20,
+            right: 10,
+            left: 10,
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" tickFormatter={numberToMonthAbbreviation} />
           <YAxis dataKey={dataKey} tickFormatter={tickFormatter} />
           <Tooltip content={<TrendTooltip />} />
-          <Legend />
+          <Legend layout="horizontal" verticalAlign="bottom" align="left" />
           <Bar
             dataKey={dataKey}
+            name={`${ergType} meters`}
             fill={hexFill}
             activeBar={<Rectangle fill="#7f99b2" stroke="#ffffff" />}
           />

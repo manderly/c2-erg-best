@@ -13,11 +13,30 @@ export const isCurrentMonth = (month: string) => {
   return currentMonth === Number(month);
 };
 
-export const getFormattedDuration = (seconds: number): string => {
+/**
+ * This is used to turn seconds (as a number) into a human-readable string.
+ * By default, it returns a clock-like formatting:
+ * "01:25:30"
+ * You read it as: 1 hours, 25 mins, 30 seconds
+ * Use this for workout-specific duration data.
+ *
+ * Alternatively, pass true as the second parameter to get something meant for longer durations:
+ * 17 hours, 21 minutes
+ * Use this for bigger sums, like how long you spent on the machines this month or year.
+ *
+ * @param seconds
+ * @param bigDuration
+ */
+export const getFormattedDuration = (
+  seconds: number,
+  bigDuration = false,
+): string => {
   const duration = intervalToDuration({
     start: new Date(0, 0, 0, 0, 0, 0),
     end: new Date(0, 0, 0, 0, 0, seconds),
   });
+
+  const days = duration.days;
   const hr =
     duration.hours && duration.hours < 10
       ? `0${duration.hours}`
@@ -34,7 +53,15 @@ export const getFormattedDuration = (seconds: number): string => {
   if (!hr && !min && !sec) {
     return "--";
   }
-  return `${hr ?? "00"}:${min ?? "00"}:${sec ?? "00"}`;
+
+  if (bigDuration) {
+    // Use this for format "12 hours, 37 minutes"
+    const dys = days ? `${days} days,` : "";
+    return `${dys} ${hr ?? "0"} hours, ${min ?? "0"} minutes`;
+  } else {
+    // use this for format "01:25:00" format
+    return `${hr ?? "00"}:${min ?? "00"}:${sec ?? "00"}`;
+  }
 };
 
 export const getDayOfMonth = (item: string): number => {

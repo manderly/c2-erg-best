@@ -1,9 +1,6 @@
 import { Radio, RadioGroup } from "@mantine/core";
 import { BarChartComponent } from "./BarChart.component.tsx";
-import {
-  formatMillisecondsToTimestamp,
-  getFormattedDistanceString,
-} from "../../services/formatting_utils.ts";
+import { getFormattedDistanceString } from "../../services/formatting_utils.ts";
 import { useState } from "react";
 import { TrendsDataIF } from "../../types/types.ts";
 import {
@@ -42,36 +39,35 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
 
   return (
     <>
-      <div className={"radio-group-inline"}>
-        <h2>Trends for </h2>
-        <RadioGroup
-          value={chartErgType}
-          onChange={handleChartErgTypeRadio}
-          className="radio-group"
-        >
-          <div>
-            <Radio
-              disabled={!ergDataState.hasRowErg}
-              value="rowErg"
-              label="RowErg"
-            />
-          </div>
-          <div>
-            <Radio
-              disabled={!ergDataState.hasBikeErg}
-              value="bikeErg"
-              label="BikeErg"
-            />
-          </div>
-          <div>
-            <Radio
-              disabled={!ergDataState.hasSkiErg}
-              value="skiErg"
-              label="SkiErg"
-            />
-          </div>
-        </RadioGroup>
-      </div>
+      <RadioGroup
+        value={chartErgType}
+        onChange={handleChartErgTypeRadio}
+        className="trend-radio-group pad-bottom-big"
+      >
+        <div>
+          <Radio
+            disabled={!ergDataState.hasRowErg}
+            value="rowErg"
+            label="RowErg"
+          />
+        </div>
+
+        <div className={"pad-left"}>
+          <Radio
+            disabled={!ergDataState.hasBikeErg}
+            value="bikeErg"
+            label="BikeErg"
+          />
+        </div>
+
+        <div className={"pad-left"}>
+          <Radio
+            disabled={!ergDataState.hasSkiErg}
+            value="skiErg"
+            label="SkiErg"
+          />
+        </div>
+      </RadioGroup>
       <BarChartComponent
         title={"Distance"}
         data={
@@ -87,21 +83,22 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
         hexFill={getColorForErgType(chartErgType)}
         tickFormatter={getFormattedDistanceString}
       />
-      <BarChartComponent
-        title={"Pace"}
-        data={
-          chartErgType === "rowErg"
-            ? trends?.pace.rowErg
-            : chartErgType === "bikeErg"
-              ? trends?.pace.bikeErg
-              : chartErgType === "skiErg"
-                ? trends?.pace.skiErg
-                : []
-        }
-        dataKey={"value"}
-        hexFill={getColorForErgType(chartErgType)}
-        tickFormatter={formatMillisecondsToTimestamp}
-      />
+      <div className={"radio-group-inline"}></div>
+      {/*<BarChartComponent*/}
+      {/*  title={"Pace"}*/}
+      {/*  data={*/}
+      {/*    chartErgType === "rowErg"*/}
+      {/*      ? trends?.pace.rowErg*/}
+      {/*      : chartErgType === "bikeErg"*/}
+      {/*        ? trends?.pace.bikeErg*/}
+      {/*        : chartErgType === "skiErg"*/}
+      {/*          ? trends?.pace.skiErg*/}
+      {/*          : []*/}
+      {/*  }*/}
+      {/*  dataKey={"value"}*/}
+      {/*  hexFill={getColorForErgType(chartErgType)}*/}
+      {/*  tickFormatter={formatMillisecondsToTimestamp}*/}
+      {/*/>*/}
     </>
   );
 };
