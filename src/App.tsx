@@ -18,11 +18,13 @@ import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied
 import Papa, { ParseResult } from "papaparse";
 import _ from "lodash";
 import {
+  getDateSinceEpoch,
   getDayOfMonth,
   getFormattedDate,
   getFormattedDistance,
   getFormattedDistanceString,
   getFormattedDuration,
+  getFormattedEpochDate,
   getFormattedTime,
   getMonthNumber,
   getRowYear,
@@ -53,11 +55,14 @@ import {
 } from "./store/ergDataSlice";
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
 import { format } from "date-fns";
+import ErgDataSummary from "./components/ErgDataSummary.tsx";
 
 const localCSVFiles = [
   "/concept2-season-2024.csv",
   "/concept2-season-2025.csv",
 ];
+
+const RIDICULOUS_FUTURE_TIMESTAMP = 3155760000000; // Jan 1, 2070
 
 const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   bestDistance: {
@@ -123,6 +128,8 @@ function App() {
   const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
   const [totalMeters, setTotalMeters] = useState<number>(0);
   const [totalErgTime, setTotalErgTime] = useState<number>(0);
+  const [earliestDate, setEarliestDate] = useState<number>(1735517251);
+  const [latestDate, setLatestDate] = useState<number>(0);
 
   const removeSelectedFilename = (filename: string) => {
     if (files) {
@@ -223,17 +230,13 @@ function App() {
     }
   };
 
-  const loadTestData = () => {
-    const fetchData = async () => {
-      const filePromises = _.map(localCSVFiles, (fileName) =>
-        fetchLocalCSVFile(fileName),
-      );
+  const loadTestData = async () => {
+    const filePromises = _.map(localCSVFiles, (fileName) =>
+      fetchLocalCSVFile(fileName),
+    );
 
-      const files = await Promise.all(filePromises);
-      parseCSVFiles(files);
-    };
-
-    fetchData();
+    const localFiles = await Promise.all(filePromises);
+    parseCSVFiles(localFiles);
   };
 
   const handleCSVInput = (payload: File[] | null) => {
@@ -272,6 +275,8 @@ function App() {
   const localBests: LocalBests = {};
   let localMetersSum = 0;
   let localErgTimeSum = 0;
+  let localEarliestDate = RIDICULOUS_FUTURE_TIMESTAMP;
+  let localLatestDate = 0;
 
   const parseCSVFiles = (files: (File | null)[]) => {
     const localYears: string[] = [];
@@ -296,6 +301,7 @@ function App() {
                   const parsedCSVRowData: ParsedCSVRowDataIF = {
                     dateRaw: String(row[1]),
                     date: getFormattedDate(String(row[1])),
+                    dateSinceEpoch: getDateSinceEpoch(String(row[1])),
                     day: getDayOfMonth(String(row[1])),
                     year: getRowYear(String(row[1])),
                     startTime: getFormattedTime(String(row[1])),
@@ -314,6 +320,14 @@ function App() {
                     ranked: Boolean(row[20]),
                     id: String(row[0]),
                   };
+
+                  // update earliest and latest date, if applicable
+                  if (parsedCSVRowData.dateSinceEpoch < localEarliestDate) {
+                    localEarliestDate = parsedCSVRowData.dateSinceEpoch;
+                  }
+                  if (parsedCSVRowData.dateSinceEpoch > localLatestDate) {
+                    localLatestDate = parsedCSVRowData.dateSinceEpoch;
+                  }
 
                   // add this year to Years if we don't have it already
                   if (!localYears.includes(String(parsedCSVRowData.year))) {
@@ -562,7 +576,8 @@ function App() {
                   ),
                 },
               });
-
+              setEarliestDate(localEarliestDate);
+              setLatestDate(localLatestDate);
               setYears(localYears);
               setUnfilteredRowData(combinedUnfilteredRowData);
             },
@@ -681,18 +696,23 @@ function App() {
       </div>
       <div className="flex-column">
         <h2>Your Erg Data {viewingYear}</h2>
-        <Text>
-          <strong>Total meters: </strong>
-          {getFormattedDistanceString(totalMeters, false)}
-        </Text>
-        <Text>
-          <strong>Sessions: </strong>
-          {unfilteredRowData.length}{" "}
-        </Text>
-        <Text>
-          <strong>Time spent Ergin': </strong>
-          {getFormattedDuration(totalErgTime, true)}
-        </Text>
+        <ErgDataSummary
+          label={"Files uploaded"}
+          value={files?.length ? files.length : 0}
+        />
+        <ErgDataSummary
+          label={"Date range"}
+          value={`${getFormattedEpochDate(earliestDate)} - ${getFormattedEpochDate(latestDate)}`}
+        />
+        <ErgDataSummary
+          label={"Total meters"}
+          value={getFormattedDistanceString(totalMeters, false)}
+        />
+        <ErgDataSummary label={"Sessions"} value={unfilteredRowData.length} />
+        <ErgDataSummary
+          label={"Time spent Ergin'"}
+          value={getFormattedDuration(totalErgTime, true)}
+        />
       </div>
     </div>
   );

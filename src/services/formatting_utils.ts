@@ -3,7 +3,9 @@ import {
   addMinutes,
   addSeconds,
   format,
+  fromUnixTime,
   getMonth,
+  getUnixTime,
   getYear,
   intervalToDuration,
 } from "date-fns";
@@ -70,6 +72,14 @@ export const getDayOfMonth = (item: string): number => {
 
 export const getFormattedDate = (item: string): string => {
   return item ? format(new Date(item), "M/d/yy") : "not a date";
+};
+
+export const getDateSinceEpoch = (date: string): number => {
+  return date ? getUnixTime(new Date(date)) : 0;
+};
+
+export const getFormattedEpochDate = (timestamp: number) => {
+  return format(new Date(fromUnixTime(timestamp)), "MM/dd/yyyy");
 };
 
 export const getRowYear = (rowDate: string): number => {

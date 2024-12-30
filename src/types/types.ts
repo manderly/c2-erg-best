@@ -10,6 +10,7 @@ export type DisplayRowType = {
 export interface ParsedCSVRowDataIF {
   dateRaw: string;
   date: string;
+  dateSinceEpoch: number;
   day: number;
   year: number;
   startTime: string;
