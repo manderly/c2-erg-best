@@ -8,7 +8,7 @@ interface ErgDataSummaryIF {
 
 const ErgDataSummary: React.FC<ErgDataSummaryIF> = ({ label, value }) => {
   return (
-    <Text>
+    <Text className={"general-stat-line"}>
       <strong>{label}: </strong>
       {value}
     </Text>

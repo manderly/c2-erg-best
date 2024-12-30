@@ -14,7 +14,7 @@ import {
   GridOptions,
   ICellRendererParams,
 } from "ag-grid-community";
-import { isAfter, isBefore, subDays } from "date-fns";
+import { fromUnixTime, isAfter, isBefore, subDays } from "date-fns";
 import { useForm } from "react-hook-form";
 import { getFormattedDistanceString } from "../../services/formatting_utils.ts";
 import { useSelector } from "react-redux";
@@ -109,6 +109,7 @@ const ALL_COLUMNS = [
   { field: "ranked", flex: 1 },
 ];
 
+// Not used as of 12/30/24, needs some redesign to be useful and interesting
 export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
   unfilteredRowData,
 }) => {
@@ -155,8 +156,8 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
 
         // ignore any row that is outside the date range
         if (
-          isBefore(new Date(row.date), new Date(startDate)) ||
-          isAfter(new Date(row.date), new Date(endDate))
+          isBefore(fromUnixTime(row.date), new Date(startDate)) ||
+          isAfter(fromUnixTime(row.date), new Date(endDate))
         ) {
           return;
         }

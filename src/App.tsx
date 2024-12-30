@@ -21,9 +21,6 @@ import {
   getDateSinceEpoch,
   getDayOfMonth,
   getFormattedDistance,
-  getFormattedDistanceString,
-  getFormattedDuration,
-  getFormattedEpochDate,
   getFormattedTime,
   getMonthNumber,
   getRowYear,
@@ -43,24 +40,26 @@ import {
   SessionDataIF,
   TrendDataGroupedIF,
   ViewMode,
+  GeneralStatDataIF,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
-import { WorkoutTableComponent } from "./components/WorkoutTable/WorkoutTable.component.tsx";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setHasBikeErg,
   setHasRowErg,
   setHasSkiErg,
+  setIsDoneLoadingCSVData,
+  setViewingYear,
 } from "./store/ergDataSlice";
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
-import ErgDataSummary from "./components/ErgDataSummary.tsx";
+import GeneralStats from "./components/GeneralStatsForYear/GeneralStats.component.tsx";
+import { RootState } from "./store/store.ts";
+import { RIDICULOUS_FUTURE_TIMESTAMP } from "./consts/consts.ts";
 
 const localCSVFiles = [
   "/concept2-season-2024.csv",
   "/concept2-season-2025.csv",
 ];
-
-const RIDICULOUS_FUTURE_TIMESTAMP = 3155760000000; // Jan 1, 2070
 
 const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   bestDistance: {
@@ -95,6 +94,7 @@ const workDistanceSums: WorkDistanceSumsIF = {
 
 function App() {
   const dispatch = useDispatch();
+  const ergDataState = useSelector((state: RootState) => state.ergData);
 
   const MONTH_NAMES = [
     "January",
@@ -111,11 +111,8 @@ function App() {
     "December",
   ] as const;
 
-  const [isDoneProcessingCSVFiles, setIsDoneProcessingCSVFiles] =
-    useState(false);
   const [files, setFiles] = useState<File[] | null>(null);
   const [years, setYears] = useState<string[]>([]);
-  const [viewingYear, setViewingYear] = useState<string>("2024");
   const [calendarViewMode, setCalendarViewMode] =
     useState<ViewMode>("calendarYear");
 
@@ -124,10 +121,13 @@ function App() {
   >([]);
   const [bests, setBests] = useState({});
   const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
-  const [totalMeters, setTotalMeters] = useState<number>(0);
-  const [totalErgTime, setTotalErgTime] = useState<number>(0);
-  const [earliestDate, setEarliestDate] = useState<number>(1735517251);
-  const [latestDate, setLatestDate] = useState<number>(0);
+  const [generalStatData, setGeneralStatData] = useState<GeneralStatDataIF>({
+    totalMeters: 0,
+    totalErgTime: 0,
+    earliestDate: RIDICULOUS_FUTURE_TIMESTAMP,
+    latestDate: -1,
+    years: [],
+  });
 
   const removeSelectedFilename = (filename: string) => {
     if (files) {
@@ -147,14 +147,14 @@ function App() {
             {files.map((file) => (
               <li key={file.name} className={"font-size-14 filename-in-list"}>
                 {file.name}{" "}
-                {!isDoneProcessingCSVFiles && (
+                {!ergDataState.isDoneLoadingCSVData && (
                   <CloseButton
                     size="sm"
                     className={"remove-filename-x"}
                     onClick={() => removeSelectedFilename(file.name)}
                   ></CloseButton>
                 )}
-                {isDoneProcessingCSVFiles && <span>✔</span>}
+                {ergDataState.isDoneLoadingCSVData && <span>✔</span>}
               </li>
             ))}
           </ul>
@@ -168,7 +168,6 @@ function App() {
     stat: "distance" | "pace" | "workTime",
     ergType: ErgType,
   ): TrendDataGroupedIF[] => {
-    console.log(data);
     const grouped = _.groupBy(data, "month");
     const allMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -240,7 +239,7 @@ function App() {
 
   const handleCSVInput = (payload: File[] | null) => {
     setFiles(payload);
-    setIsDoneProcessingCSVFiles(false);
+    dispatch(setIsDoneLoadingCSVData(false));
   };
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -255,7 +254,7 @@ function App() {
   };
 
   const handleSelectYear = (year: string) => {
-    setViewingYear(year);
+    dispatch(setViewingYear(year));
   };
 
   const localDistanceTrendsRow: DateAndDistanceIF[] = [];
@@ -517,8 +516,6 @@ function App() {
                 .value();
 
               setBests(localBests);
-              setTotalMeters(localMetersSum);
-              setTotalErgTime(localErgTimeSum);
 
               setTrends({
                 distance: {
@@ -573,8 +570,14 @@ function App() {
                   ),
                 },
               });
-              setEarliestDate(localEarliestDate);
-              setLatestDate(localLatestDate);
+
+              setGeneralStatData({
+                totalMeters: localMetersSum,
+                totalErgTime: localErgTimeSum,
+                earliestDate: localEarliestDate,
+                latestDate: localLatestDate,
+                years: localYears,
+              });
               setYears(localYears);
               setUnfilteredRowData(combinedUnfilteredRowData);
             },
@@ -582,7 +585,7 @@ function App() {
         }
       });
     }
-    setIsDoneProcessingCSVFiles(true);
+    dispatch(setIsDoneLoadingCSVData(true));
   };
 
   const AdjustViewSettings = () => (
@@ -674,7 +677,7 @@ function App() {
       >
         {files && SelectedFilenames}
         <div className={"process-data-buttons"}>
-          <Button type={"submit"} disabled={isDoneProcessingCSVFiles}>
+          <Button type={"submit"} disabled={ergDataState.isDoneLoadingCSVData}>
             Process .csv data
           </Button>
 
@@ -686,37 +689,9 @@ function App() {
     </form>
   );
 
-  const GeneralStats = () => (
-    <div className="flex-row width-40 general-stats-container">
-      <div className="centered-vertical centered-horizontal">
-        <Text className="medal-big">🏅</Text>
-      </div>
-      <div className="flex-column">
-        <h2>Your Erg Data {viewingYear}</h2>
-        <ErgDataSummary
-          label={"Files uploaded"}
-          value={files?.length ? files.length : 0}
-        />
-        <ErgDataSummary
-          label={"Date range"}
-          value={`${getFormattedEpochDate(earliestDate)} - ${getFormattedEpochDate(latestDate)}`}
-        />
-        <ErgDataSummary
-          label={"Total meters"}
-          value={getFormattedDistanceString(totalMeters, false)}
-        />
-        <ErgDataSummary label={"Sessions"} value={unfilteredRowData.length} />
-        <ErgDataSummary
-          label={"Time spent Ergin'"}
-          value={getFormattedDuration(totalErgTime, true)}
-        />
-      </div>
-    </div>
-  );
-
   const GeneralTrends = () => (
     <div className={"trends-container"}>
-      <h2>Your Erg Trends {viewingYear}</h2>
+      <h2>Your Erg Trends {ergDataState.viewingYear}</h2>
       <div className={"pad-top-subtle pad-bottom flex-row"}>
         <div>{trends !== undefined && <TrendsComponent trends={trends} />}</div>
       </div>
@@ -726,7 +701,7 @@ function App() {
   return (
     <MantineProvider defaultColorScheme="dark">
       <div className={"app-container"}>
-        <Grid className={"pad-left pad-right"}>
+        <Grid className={"pad-left pad-right max-height"}>
           <Grid.Col span={12}>
             <div className={"app-title"}>
               <h2>C2 Erg Bests</h2>
@@ -740,32 +715,34 @@ function App() {
               </div>
             </div>
 
-            {unfilteredRowData.length > 0 && (
-              <div className={"pad-top"}>
-                <div className={"flex-row"}>
-                  <GeneralStats />
-                  <GeneralTrends />
-                </div>
-                <div className={"proportions-bar-container"}>
-                  <ErgProportions workDistanceSums={workDistanceSums} />
-                </div>
-
-                {/** Month cards **/}
-                {isDoneProcessingCSVFiles ? (
-                  <MonthCards bests={bests} />
-                ) : (
-                  <></>
-                )}
-
-                {/** AG-grid table with workout details **/}
-                <WorkoutTableComponent unfilteredRowData={unfilteredRowData} />
+            <div className={"pad-top"}>
+              <div className={"flex-row"}>
+                <GeneralStats
+                  fileCount={files?.length ?? 0}
+                  sessionsCount={unfilteredRowData.length}
+                  data={generalStatData}
+                />
+                <GeneralTrends />
               </div>
-            )}
+              <div className={"proportions-bar-container"}>
+                <ErgProportions workDistanceSums={workDistanceSums} />
+              </div>
+
+              {/** Month cards **/}
+              {ergDataState.isDoneLoadingCSVData ? (
+                <MonthCards bests={bests} />
+              ) : (
+                <></>
+              )}
+
+              {/** AG-grid table with workout details - removed 12/30, it's not very useful **/}
+              {/** <WorkoutTableComponent unfilteredRowData={unfilteredRowData} /> **/}
+            </div>
           </Grid.Col>
         </Grid>
       </div>
 
-      <div className={"bottom-credits"}>App by Mandi Burley, 2024</div>
+      <div className={"bottom-credits"}>App by Mandi Burley, 2024-2025</div>
     </MantineProvider>
   );
 }

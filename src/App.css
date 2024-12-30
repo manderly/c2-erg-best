@@ -3,12 +3,16 @@
   background-color: #001428;
 }
 
-a {
-  color: #7f99b2 !important;
+.app-container {
+  min-height: 100%;
 }
 
-.app-container {
-  height: 100vh;
+.max-height {
+  min-height: 100vh;
+}
+
+a {
+  color: #7f99b2 !important;
 }
 
 .app-title h2 {
@@ -306,6 +310,8 @@ h4 {
 .general-stats-container {
   border-right: 1px dashed #324d67;
   margin-right:10px;
+  display: flex;
+  min-height: 250px;
 }
 
 .trends-container {
@@ -380,6 +386,14 @@ h4 {
 .proccess-data-buttons {
   display: flex;
   flex-direction: row;
+}
+
+.general-stat-line {
+  margin-bottom: 4px !important;
+}
+
+.unloaded-stats {
+  color: #324d67 !important;
 }
 
 .load-test-data-button {

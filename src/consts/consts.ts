@@ -31,3 +31,5 @@ export const englishMonthsAbbreviations = [
   "N",
   "D",
 ];
+
+export const RIDICULOUS_FUTURE_TIMESTAMP = 315576000000;

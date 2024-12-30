@@ -6,6 +6,8 @@ export const ergDataSlice = createSlice({
     hasRowErg: false,
     hasBikeErg: false,
     hasSkiErg: false,
+    isDoneLoadingCSVData: false,
+    viewingYear: "2024",
   },
   reducers: {
     setHasRowErg: (state) => {
@@ -17,10 +19,21 @@ export const ergDataSlice = createSlice({
     setHasSkiErg: (state) => {
       state.hasSkiErg = true;
     },
+    setIsDoneLoadingCSVData: (state, action) => {
+      state.isDoneLoadingCSVData = action.payload;
+    },
+    setViewingYear: (state, action) => {
+      state.viewingYear = action.payload;
+    },
   },
 });
 
-export const { setHasRowErg, setHasBikeErg, setHasSkiErg } =
-  ergDataSlice.actions;
+export const {
+  setHasRowErg,
+  setHasBikeErg,
+  setHasSkiErg,
+  setIsDoneLoadingCSVData,
+  setViewingYear,
+} = ergDataSlice.actions;
 
 export default ergDataSlice.reducer;

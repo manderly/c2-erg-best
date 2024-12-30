@@ -14,14 +14,13 @@ interface SegmentIF {
 const Segment: React.FC<SegmentIF> = ({ proportion, meters, erg }) => {
   const machineName = getFormattedErgName(erg);
   const formattedMeters = getFormattedDistanceString(meters, false);
-
   return (
     <TooltipFloating label={`${formattedMeters} ${machineName} meters`}>
       <div
         className={`${erg}-erg-proportion`}
         style={{ width: `${proportion}%` }}
       >
-        {machineName} {proportion}%
+        {proportion > 5 ? `${machineName} ${proportion}%` : ""}
       </div>
     </TooltipFloating>
   );

@@ -136,3 +136,11 @@ export interface WorkDistanceSumsIF {
   bikeErg: number;
   skiErg: number;
 }
+
+export interface GeneralStatDataIF {
+  totalMeters: number;
+  totalErgTime: number;
+  earliestDate: number;
+  latestDate: number;
+  years: string[];
+}
