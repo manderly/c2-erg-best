@@ -3,16 +3,13 @@ export type ViewMode = "concept2Season" | "calendarYear";
 
 export type DisplayRowType = {
   label: string;
-  date: string;
+  date: number;
   type: string;
 };
 
 export interface ParsedCSVRowDataIF {
-  dateRaw: string;
-  date: string;
-  dateSinceEpoch: number;
+  date: number; // since epoch
   day: number;
-  year: number;
   startTime: string;
   type: ErgType;
   description: string;
@@ -86,19 +83,19 @@ export interface TrendsDataIF {
 }
 
 export interface DateAndDistanceIF {
-  date: string;
+  date: number;
   distance: number;
   month: number;
 }
 
 export interface DateAndPaceIF {
-  date: string;
+  date: number;
   pace: number;
   month: number;
 }
 
 export interface DateAndWorkTimeIF {
-  date: string;
+  date: number;
   workTime: number;
   month: number;
 }
@@ -109,7 +106,7 @@ export type WorkoutDataType = {
 
 export interface BestWorkoutInCategoryIF {
   value: number | string;
-  date: string;
+  date: number;
   workoutId: string;
 }
 
@@ -128,7 +125,7 @@ export interface RowIF {
 }
 
 export interface SessionDataIF {
-  date: string;
+  date: number;
   ergType: string;
   distance: number;
   time: string;

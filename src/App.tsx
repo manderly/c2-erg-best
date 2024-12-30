@@ -20,7 +20,6 @@ import _ from "lodash";
 import {
   getDateSinceEpoch,
   getDayOfMonth,
-  getFormattedDate,
   getFormattedDistance,
   getFormattedDistanceString,
   getFormattedDuration,
@@ -54,7 +53,6 @@ import {
   setHasSkiErg,
 } from "./store/ergDataSlice";
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
-import { format } from "date-fns";
 import ErgDataSummary from "./components/ErgDataSummary.tsx";
 
 const localCSVFiles = [
@@ -67,22 +65,22 @@ const RIDICULOUS_FUTURE_TIMESTAMP = 3155760000000; // Jan 1, 2070
 const DEFAULT_RECORD_DATA: BestDataForErgIF = {
   bestDistance: {
     value: 0,
-    date: "",
+    date: 0,
     workoutId: "",
   },
   bestPace: {
     value: "999:00.0",
-    date: "",
+    date: 0,
     workoutId: "",
   },
   bestStroke: {
     value: 0,
-    date: "",
+    date: 0,
     workoutId: "",
   },
   bestWorkTime: {
     value: 0,
-    date: "",
+    date: 0,
     workoutId: "",
   },
   workDistanceSum: 0,
@@ -170,6 +168,7 @@ function App() {
     stat: "distance" | "pace" | "workTime",
     ergType: ErgType,
   ): TrendDataGroupedIF[] => {
+    console.log(data);
     const grouped = _.groupBy(data, "month");
     const allMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -299,11 +298,8 @@ function App() {
                     | "skiErg";
                   // row data from the CSV ("row" as in table rows, not RowErg)
                   const parsedCSVRowData: ParsedCSVRowDataIF = {
-                    dateRaw: String(row[1]),
-                    date: getFormattedDate(String(row[1])),
-                    dateSinceEpoch: getDateSinceEpoch(String(row[1])),
+                    date: getDateSinceEpoch(String(row[1])),
                     day: getDayOfMonth(String(row[1])),
-                    year: getRowYear(String(row[1])),
                     startTime: getFormattedTime(String(row[1])),
                     type: ergType as ErgType,
                     description: String(row[2]),
@@ -322,16 +318,17 @@ function App() {
                   };
 
                   // update earliest and latest date, if applicable
-                  if (parsedCSVRowData.dateSinceEpoch < localEarliestDate) {
-                    localEarliestDate = parsedCSVRowData.dateSinceEpoch;
+                  if (parsedCSVRowData.date < localEarliestDate) {
+                    localEarliestDate = parsedCSVRowData.date;
                   }
-                  if (parsedCSVRowData.dateSinceEpoch > localLatestDate) {
-                    localLatestDate = parsedCSVRowData.dateSinceEpoch;
+                  if (parsedCSVRowData.date > localLatestDate) {
+                    localLatestDate = parsedCSVRowData.date;
                   }
 
                   // add this year to Years if we don't have it already
-                  if (!localYears.includes(String(parsedCSVRowData.year))) {
-                    localYears.push(String(parsedCSVRowData.year));
+                  const thisYear = String(getRowYear(parsedCSVRowData.date));
+                  if (!localYears.includes(thisYear)) {
+                    localYears.push(thisYear);
                   }
 
                   // add these meters to the sum for this date
@@ -427,17 +424,17 @@ function App() {
                     distance:
                       parsedCSVRowData.workDistance +
                       parsedCSVRowData.restDistance,
-                    month: Number(format(parsedCSVRowData.date, "M")),
+                    month: getMonthNumber(parsedCSVRowData.date),
                   };
                   const newPace: DateAndPaceIF = {
                     date: parsedCSVRowData.date,
                     pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
-                    month: Number(format(parsedCSVRowData.date, "M")),
+                    month: getMonthNumber(parsedCSVRowData.date),
                   };
                   const newWorkTime: DateAndWorkTimeIF = {
                     date: parsedCSVRowData.date,
                     workTime: parsedCSVRowData.workTime,
-                    month: Number(format(parsedCSVRowData.date, "M")),
+                    month: getMonthNumber(parsedCSVRowData.date),
                   };
 
                   const month = localBests[monthName];

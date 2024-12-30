@@ -30,7 +30,6 @@ function getColorForErgType(ergType: string) {
 
 export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
-
   const [chartErgType, setChartErgType] = useState("rowErg");
 
   const handleChartErgTypeRadio = (e: string) => {

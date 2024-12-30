@@ -82,11 +82,12 @@ export const getFormattedEpochDate = (timestamp: number) => {
   return format(new Date(fromUnixTime(timestamp)), "MM/dd/yyyy");
 };
 
-export const getRowYear = (rowDate: string): number => {
-  if (!rowDate) {
+/* Return just the year for this row, ie: 2024 */
+export const getRowYear = (timestamp: number): number => {
+  if (!timestamp) {
     return 0;
   }
-  return getYear(rowDate);
+  return getYear(fromUnixTime(timestamp));
 };
 
 export const getFormattedTime = (item: string): string => {
@@ -107,8 +108,8 @@ export const getFormattedDistanceString = (
   return `${Number(item).toLocaleString()}${includeMeters ? "m" : ""}`;
 };
 
-export const getMonthNumber = (item: string) => {
-  return getMonth(new Date(item)) + 1;
+export const getMonthNumber = (timestamp: number) => {
+  return getMonth(fromUnixTime(timestamp)) + 1;
 };
 
 // Transforms data like "2:56.5" into millisecond value
@@ -175,6 +176,6 @@ export const getFormattedErgName = (
   }
 };
 
-export const getFullDate = (input: string) => {
-  return format(new Date(input), "EEEE, MMM d, yyyy");
+export const getFullDate = (timestamp: number) => {
+  return format(fromUnixTime(timestamp), "EEEE, MMM d, yyyy");
 };
