@@ -1,5 +1,4 @@
 import React from "react";
-import { Text } from "@mantine/core";
 import ErgDataSummary from "./ErgDataSummary.tsx";
 import {
   getFormattedDistanceString,
@@ -31,13 +30,13 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({
 
   return (
     <div className="flex-row">
-      <div className="centered-vertical centered-horizontal">
-        <Text className="medal-big">🏅</Text>
-      </div>
       <div
         className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""} flex-column`}
       >
-        <h2>Your Erg Data {ergDataState.viewingYear}</h2>
+        <h2>
+          Your Erg Data {ergDataState.viewingYear}{" "}
+          {`${ergDataState.isDoneLoadingCSVData ? "🏅" : ""}`}
+        </h2>
         <ErgDataSummary label={"Files uploaded"} value={fileCount} />
         <ErgDataSummary label={"Date range"} value={dateRange} />
         <ErgDataSummary

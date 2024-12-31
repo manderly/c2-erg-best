@@ -669,7 +669,6 @@ function App() {
       </Flex>
       <Flex
         className="upload-file pad-bottom pad-right"
-        mih={90}
         gap="md"
         justify="flex-start"
         align="flex-start"
@@ -678,7 +677,10 @@ function App() {
       >
         {files && SelectedFilenames}
         <div className={"process-data-buttons"}>
-          <Button type={"submit"} disabled={ergDataState.isDoneLoadingCSVData}>
+          <Button
+            type={"submit"}
+            disabled={ergDataState.isDoneLoadingCSVData || !files?.length}
+          >
             Process .csv data
           </Button>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ParsedCSVRowDataIF,
   RowIF,
@@ -140,7 +140,26 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
     }
   }
 
-  const getFilteredRows = () => {
+  const { handleSubmit } = useForm();
+
+  const [startDate, setStartDate] = useState(subDays(new Date(), 30));
+  const [endDate, setEndDate] = useState(new Date());
+
+  const [minimumDuration, setMinimumDuration] = useState("60");
+
+  const [includeRower, setIncludeRower] = useState(true);
+  const [includeBike, setIncludeBike] = useState(true);
+  const [includeSki, setIncludeSki] = useState(true);
+  const [includeStartTime, setIncludeStartTime] = useState(false);
+  const [includeTotalCal, setIncludeTotalCal] = useState(false);
+  const [includeRanked, setIncludeRanked] = useState(false);
+  const [includeDragFactor, setIncludeDragFactor] = useState(false);
+
+  const [filteredRowData, setFilteredRowData] = useState<ParsedCSVRowDataIF[]>(
+    [],
+  );
+
+  const getFilteredRows = useCallback(() => {
     const copy = _.cloneDeep(unfilteredRowData);
     if (copy && copy.length) {
       return copy.filter((row: ParsedCSVRowDataIF) => {
@@ -167,9 +186,16 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
     } else {
       return [];
     }
-  };
+  }, [
+    endDate,
+    includeBike,
+    includeRower,
+    includeSki,
+    startDate,
+    unfilteredRowData,
+  ]);
 
-  const getFilteredColumns = () => {
+  const getFilteredColumns = useCallback(() => {
     return ALL_COLUMNS.filter((col: ColDef) => {
       if (col.field === "startTime" && includeStartTime) {
         return col;
@@ -196,30 +222,8 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
       }
 
       return col;
-    });
-  };
-
-  const { handleSubmit } = useForm();
-
-  const [startDate, setStartDate] = useState(subDays(new Date(), 30));
-  const [endDate, setEndDate] = useState(new Date());
-
-  const [minimumDuration, setMinimumDuration] = useState("60");
-
-  const [includeRower, setIncludeRower] = useState(true);
-  const [includeBike, setIncludeBike] = useState(true);
-  const [includeSki, setIncludeSki] = useState(true);
-  const [includeStartTime, setIncludeStartTime] = useState(false);
-  const [includeTotalCal, setIncludeTotalCal] = useState(false);
-  const [includeRanked, setIncludeRanked] = useState(false);
-  const [includeDragFactor, setIncludeDragFactor] = useState(false);
-
-  const [colDefs, setColDefs] =
-    useState<(ColDef | ColGroupDef)[]>(getFilteredColumns());
-
-  const [filteredRowData, setFilteredRowData] = useState<ParsedCSVRowDataIF[]>(
-    [],
-  );
+    }); // todo: see if these can be passed in
+  }, [includeDragFactor, includeRanked, includeStartTime, includeTotalCal]);
 
   useEffect(() => {
     setColDefs(getFilteredColumns());
@@ -241,6 +245,9 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
     startDate,
     endDate,
   ]);
+
+  const [colDefs, setColDefs] =
+    useState<(ColDef | ColGroupDef)[]>(getFilteredColumns());
 
   const SearchFilters = () => (
     <>
