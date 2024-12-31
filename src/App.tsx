@@ -10,6 +10,7 @@ import {
   Radio,
   Select,
   Stack,
+  Container,
 } from "@mantine/core";
 import { Grid, Button, Flex } from "@mantine/core";
 
@@ -589,7 +590,7 @@ function App() {
   };
 
   const AdjustViewSettings = () => (
-    <div className={"pad-bottom pad-left"}>
+    <div>
       <Radio.Group
         label="View options"
         onChange={(value: string) =>
@@ -690,59 +691,79 @@ function App() {
   );
 
   const GeneralTrends = () => (
-    <div className={"trends-container"}>
-      <h2>Your Erg Trends {ergDataState.viewingYear}</h2>
-      <div className={"pad-top-subtle pad-bottom flex-row"}>
-        <div>{trends !== undefined && <TrendsComponent trends={trends} />}</div>
-      </div>
+    <div>
+      <h2
+        className={`${ergDataState.isDoneLoadingCSVData ? "" : "unloaded-text"}`}
+      >
+        Your Erg Trends {ergDataState.viewingYear}
+      </h2>
+      <div>{trends !== undefined && <TrendsComponent trends={trends} />}</div>
     </div>
   );
 
   return (
     <MantineProvider defaultColorScheme="dark">
-      <div className={"app-container"}>
-        <Grid className={"pad-left pad-right max-height"}>
+      <Container fluid={true}>
+        {/* App title */}
+        <Grid>
           <Grid.Col span={12}>
-            <div className={"app-title"}>
-              <h2>C2 Erg Bests</h2>
-            </div>
-            <div className={"upload-and-options-container file-input-border"}>
-              <div className={"width-40"}>
-                <UploadFile />
-              </div>
-              <div className={"width-50 view-options-container"}>
-                <AdjustViewSettings />
-              </div>
-            </div>
-
-            <div className={"pad-top"}>
-              <div className={"flex-row"}>
-                <GeneralStats
-                  fileCount={files?.length ?? 0}
-                  sessionsCount={unfilteredRowData.length}
-                  data={generalStatData}
-                />
-                <GeneralTrends />
-              </div>
-              <div className={"proportions-bar-container"}>
-                <ErgProportions workDistanceSums={workDistanceSums} />
-              </div>
-
-              {/** Month cards **/}
-              {ergDataState.isDoneLoadingCSVData ? (
-                <MonthCards bests={bests} />
-              ) : (
-                <></>
-              )}
-
-              {/** AG-grid table with workout details - removed 12/30, it's not very useful **/}
-              {/** <WorkoutTableComponent unfilteredRowData={unfilteredRowData} /> **/}
-            </div>
+            <h2 className={"app-title"}>C2 Erg Bests</h2>
           </Grid.Col>
         </Grid>
-      </div>
 
-      <div className={"bottom-credits"}>App by Mandi Burley, 2024-2025</div>
+        {/* Upload, View Options side-by-side */}
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 5 }}>
+            <div className={"dashed-border"}>
+              <UploadFile />
+            </div>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6 }}>
+            <AdjustViewSettings />
+          </Grid.Col>
+        </Grid>
+
+        {/* General Stats */}
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 5 }}>
+            <GeneralStats
+              fileCount={files?.length ?? 0}
+              sessionsCount={unfilteredRowData.length}
+              data={generalStatData}
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 7 }}>
+            <GeneralTrends />
+          </Grid.Col>
+        </Grid>
+
+        {/* Proportions bar */}
+        <Grid>
+          <div className={"proportions-bar-container"}>
+            <ErgProportions workDistanceSums={workDistanceSums} />
+          </div>
+        </Grid>
+
+        {/* Month cards */}
+        <Grid>
+          <Grid.Col span={12}>
+            {ergDataState.isDoneLoadingCSVData ? (
+              <MonthCards bests={bests} />
+            ) : (
+              <div className={"placeholder-calendars dashed-border"}>
+                Upload .csv files to see workouts
+              </div>
+            )}
+          </Grid.Col>
+        </Grid>
+
+        {/** AG-grid table with workout details - removed 12/30, it's not very useful **/}
+        {/** <WorkoutTableComponent unfilteredRowData={unfilteredRowData} /> **/}
+
+        <div className={"bottom-credits"}>App by Mandi Burley, 2024-2025</div>
+      </Container>
     </MantineProvider>
   );
 }

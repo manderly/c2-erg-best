@@ -5,6 +5,7 @@
 
 .app-container {
   min-height: 100%;
+  padding: 10px;
 }
 
 .max-height {
@@ -15,9 +16,9 @@ a {
   color: #7f99b2 !important;
 }
 
-.app-title h2 {
+.app-title {
   color: #6690bb;
-  font-size: 2.6em;
+  font-size: 2.4em;
 }
 
 .section-title {
@@ -97,7 +98,7 @@ h4 {
   width: 100%;
 }
 
-.file-input-border {
+.dashed-border {
   border:1px dashed #324d67;
   border-radius: 20px;
   padding: 16px;
@@ -213,11 +214,6 @@ h4 {
   margin-right: 10px; /* Add some space between the radio buttons */
 }
 
-.trend-radio-group div {
-  display: flex;
-  flex-direction: row;
-}
-
 .radio-group .mantine-Radio-label {
   padding-left: 1px !important;
 }
@@ -288,34 +284,11 @@ h4 {
   color: #001428;
 }
 
-.upload-and-options-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.view-options-container {
-  margin-right:10px;
-  padding-right:10px;
-}
-
-.width-40 {
-  width: 40%;
-}
-
-.width-50 {
-  width: 50%;
-}
-
 .general-stats-container {
   border-right: 1px dashed #324d67;
   margin-right:10px;
   display: flex;
   min-height: 250px;
-}
-
-.trends-container {
-  width: 62%;
 }
 
 .recharts-wrapper {
@@ -392,7 +365,7 @@ h4 {
   margin-bottom: 4px !important;
 }
 
-.unloaded-stats {
+.unloaded-text {
   color: #324d67 !important;
 }
 
@@ -404,6 +377,12 @@ h4 {
   margin-left:5px !important;
 }
 
+.placeholder-calendars {
+  height: 400px;
+  color: #324d67;
+  align-content: center;
+  text-align: center;
+}
 @media only screen and (max-width: 1000px) {
   .month-cards {
     grid-template-columns: repeat(3, 1fr);

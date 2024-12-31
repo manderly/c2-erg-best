@@ -44,14 +44,14 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
         wrap="wrap"
       >
         <BarChart
-          width={1200}
-          height={300}
+          width={650}
+          height={500}
           data={data}
           margin={{
             top: 5,
-            right: 10,
-            left: 10,
-            bottom: 5,
+            right: 5,
+            left: 5,
+            bottom: 0,
           }}
         >
           <XAxis dataKey="month" tickFormatter={numberToMonthAbbreviation} />

@@ -30,12 +30,12 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({
   }
 
   return (
-    <div className="flex-row width-40 general-stats-container">
+    <div className="flex-row">
       <div className="centered-vertical centered-horizontal">
         <Text className="medal-big">🏅</Text>
       </div>
       <div
-        className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-stats" : ""} flex-column`}
+        className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""} flex-column`}
       >
         <h2>Your Erg Data {ergDataState.viewingYear}</h2>
         <ErgDataSummary label={"Files uploaded"} value={fileCount} />
