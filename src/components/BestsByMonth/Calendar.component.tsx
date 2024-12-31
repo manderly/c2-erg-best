@@ -48,7 +48,7 @@ const generateTableCells = (
 
         let tooltipLabel = "";
 
-        let tooltipLabelDate = "";
+        let tooltipLabelDate = 0;
         if (rowData.length > 0) {
           const totalDistance = getFormattedDistanceString(
             rowData.reduce((sum, item) => sum + item.distance, 0),
@@ -94,7 +94,6 @@ const generateTableCells = (
         const skiThisDay = skiData.length > 0 ? "ski-this-day" : "";
 
         // todo: add more combos
-        // (this is the only combo I can currently create with my own csv data)
         const rowAndBikeThisDay =
           rowThisDay && bikeThisDay && !skiThisDay
             ? "row-and-bike-this-day"

@@ -223,11 +223,24 @@ export const WorkoutTableComponent: React.FC<WorkoutTableComponentIF> = ({
 
   useEffect(() => {
     setColDefs(getFilteredColumns());
-  }, [includeStartTime, includeTotalCal, includeRanked, includeDragFactor]);
+  }, [
+    getFilteredColumns,
+    includeStartTime,
+    includeTotalCal,
+    includeRanked,
+    includeDragFactor,
+  ]);
 
   useEffect(() => {
     setFilteredRowData(getFilteredRows());
-  }, [unfilteredRowData, includeBike, includeRower, startDate, endDate]);
+  }, [
+    getFilteredRows,
+    unfilteredRowData,
+    includeBike,
+    includeRower,
+    startDate,
+    endDate,
+  ]);
 
   const SearchFilters = () => (
     <>
