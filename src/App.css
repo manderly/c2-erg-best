@@ -1,3 +1,7 @@
+html, body, #root {
+  height: 100%;
+}
+
 #root {
   width: 100%;
   background-color: #001428;
@@ -6,6 +10,15 @@
 .app-container {
   min-height: 100%;
   padding: 10px;
+}
+
+.everything-except-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: max-content;
+  height: 100%;
+  background-color: #001428;
 }
 
 .max-height {
