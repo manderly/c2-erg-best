@@ -2,7 +2,10 @@ import React from "react";
 import { MonthDataIF } from "../../types/types.ts";
 import { parse, getDay, lastDayOfMonth, getDate } from "date-fns";
 import { Tooltip } from "@mantine/core";
-import { getFormattedDistanceString } from "../../services/formatting_utils.ts";
+import {
+  getFormattedDistanceString,
+  getFormattedEpochDate,
+} from "../../services/formatting_utils.ts";
 
 const generateTableCells = (
   totalCells: number,
@@ -77,7 +80,7 @@ const generateTableCells = (
         }
 
         if (rowData || bikeData || skiData) {
-          tooltipLabel += ` on ${tooltipLabelDate}`;
+          tooltipLabel += ` on ${getFormattedEpochDate(tooltipLabelDate)}`;
         }
 
         if (
