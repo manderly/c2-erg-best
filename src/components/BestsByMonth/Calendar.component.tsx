@@ -36,7 +36,7 @@ const generateTableCells = (
   rows.push(<tr key={`day-labels`}>{labelRow}</tr>);
 
   let currentDay = 1;
-  for (let i = 0; i < totalCells; i += cellsPerRow) {
+  for (let i = 0; i <= totalCells; i += cellsPerRow) {
     const row = [];
     for (let j = 0; j < cellsPerRow; j++) {
       if (i === 0 && j < dayOfWeekIndex) {
