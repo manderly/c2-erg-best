@@ -1,6 +1,8 @@
 export type ErgType = "rowErg" | "bikeErg" | "skiErg";
 export type ViewMode = "concept2Season" | "calendarYear";
 
+export type csvRow = (string | number)[];
+
 export type DisplayRowType = {
   label: string;
   date: number;
@@ -40,21 +42,11 @@ export interface MonthDataIF {
   bikeErgSessionsByDayOfMonth: SessionDataIF[][] | [];
   skiErgSessionsByDayOfMonth: SessionDataIF[][] | [];
 }
-export type Months =
-  | "January"
-  | "February"
-  | "March"
-  | "April"
-  | "May"
-  | "June"
-  | "July"
-  | "August"
-  | "September"
-  | "October"
-  | "November"
-  | "December";
+
 export type LocalBests = {
-  [key in Months]?: MonthDataIF;
+  [year: string]: {
+    [month: string]: MonthDataIF;
+  };
 };
 
 export interface TrendDataGroupedIF {

@@ -19,11 +19,9 @@ import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied
 import Papa, { ParseResult } from "papaparse";
 import _ from "lodash";
 import {
-  getDateSinceEpoch,
-  getDayOfMonth,
-  getFormattedDistance,
-  getFormattedTime,
+  getErgTypeFromRow,
   getMonthNumber,
+  getRowData,
   getRowYear,
   parseTimeToMilliseconds,
 } from "./services/formatting_utils";
@@ -42,6 +40,7 @@ import {
   TrendDataGroupedIF,
   ViewMode,
   GeneralStatDataIF,
+  csvRow,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
 import { useDispatch, useSelector } from "react-redux";
@@ -55,7 +54,7 @@ import {
 import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.component.tsx";
 import GeneralStats from "./components/GeneralStatsForYear/GeneralStats.component.tsx";
 import { RootState } from "./store/store.ts";
-import { RIDICULOUS_FUTURE_TIMESTAMP } from "./consts/consts.ts";
+import { englishMonths, RIDICULOUS_FUTURE_TIMESTAMP } from "./consts/consts.ts";
 
 const localCSVFiles = [
   "/concept2-season-2024.csv",
@@ -96,21 +95,6 @@ const workDistanceSums: WorkDistanceSumsIF = {
 function App() {
   const dispatch = useDispatch();
   const ergDataState = useSelector((state: RootState) => state.ergData);
-
-  const MONTH_NAMES = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ] as const;
 
   const [files, setFiles] = useState<File[] | null>(null);
   const [years, setYears] = useState<string[]>([]);
@@ -254,8 +238,10 @@ function App() {
     setCalendarViewMode(mode);
   };
 
-  const handleSelectYear = (year: string) => {
-    dispatch(setViewingYear(year));
+  const handleSelectYear = (year: string | null) => {
+    if (year) {
+      dispatch(setViewingYear(year));
+    }
   };
 
   const localDistanceTrendsRow: DateAndDistanceIF[] = [];
@@ -277,6 +263,24 @@ function App() {
   let localEarliestDate = RIDICULOUS_FUTURE_TIMESTAMP;
   let localLatestDate = 0;
 
+  const buildEmptyMonth = (localMonth: string, localYear: string) => {
+    return {
+      name: localMonth,
+      year: Number(localYear),
+      rowErg: _.cloneDeep(DEFAULT_RECORD_DATA),
+      bikeErg: _.cloneDeep(DEFAULT_RECORD_DATA),
+      skiErg: _.cloneDeep(DEFAULT_RECORD_DATA),
+      rowErgCount: 0,
+      bikeErgCount: 0,
+      skiErgCount: 0,
+      rowErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
+      bikeErgSessionsByDayOfMonth: [...Array(32)].map(
+        (): SessionDataIF[] => [],
+      ),
+      skiErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
+    };
+  };
+
   const parseCSVFiles = (files: (File | null)[]) => {
     const localYears: string[] = [];
     if (files) {
@@ -288,34 +292,12 @@ function App() {
 
               // process the row data line by line from the csv
               _.chain(results.data)
-                .filter((row: (string | number)[]) => row.length > 1)
-                .orderBy((row: (string | number)[]) => row[1]) // date
-                .map((row: (string | number)[]) => {
-                  const ergType = (String(row[19]).charAt(0).toLowerCase() +
-                    String(row[19]).slice(1)) as
-                    | "bikeErg"
-                    | "rowErg"
-                    | "skiErg";
-                  // row data from the CSV ("row" as in table rows, not RowErg)
-                  const parsedCSVRowData: ParsedCSVRowDataIF = {
-                    date: getDateSinceEpoch(String(row[1])),
-                    day: getDayOfMonth(String(row[1])),
-                    startTime: getFormattedTime(String(row[1])),
-                    type: ergType as ErgType,
-                    description: String(row[2]),
-                    pace: String(row[11]), // example: 2:37.4
-                    workTime: Number(row[4]), // example: 1234.5
-                    restTime: Number(row[6]),
-                    workDistance: getFormattedDistance(row[7] as string),
-                    restDistance: getFormattedDistance(row[8] as string),
-                    strokeRate: Number(row[9]),
-                    strokeCount: Number(row[10]),
-                    totalCal: `${row[14]} (${row[13]} cal/hr)`,
-                    avgHeartRate: Number(row[15]),
-                    dragFactor: Number(row[16]),
-                    ranked: Boolean(row[20]),
-                    id: String(row[0]),
-                  };
+                .filter((row: csvRow) => row.length > 1)
+                .orderBy((row: csvRow) => row[1]) // date
+                .map((row: csvRow) => {
+                  // extract data from csv row
+                  const parsedCSVRowData: ParsedCSVRowDataIF = getRowData(row);
+                  const ergType = getErgTypeFromRow(row);
 
                   // update earliest and latest date, if applicable
                   if (parsedCSVRowData.date < localEarliestDate) {
@@ -325,93 +307,81 @@ function App() {
                     localLatestDate = parsedCSVRowData.date;
                   }
 
-                  // add this year to Years if we don't have it already
-                  const thisYear = String(getRowYear(parsedCSVRowData.date));
-                  if (!localYears.includes(thisYear)) {
-                    localYears.push(thisYear);
+                  // add this year to years if we don't have it already
+                  const localYear = String(getRowYear(parsedCSVRowData.date));
+                  if (!localYears.includes(localYear)) {
+                    localYears.push(localYear);
                   }
 
-                  // add these meters to the sum for this date
+                  // add these meters to the sum
                   localMetersSum +=
                     parsedCSVRowData.workDistance +
                     parsedCSVRowData.restDistance;
-
                   localErgTimeSum +=
                     Number(parsedCSVRowData.workTime) +
                     Number(parsedCSVRowData.restTime);
 
-                  // build "bests" data object
-                  const monthIdx = getMonthNumber(parsedCSVRowData.date) - 1;
-                  const monthName = MONTH_NAMES[monthIdx];
-
-                  // there is no data for this month - create it
-                  if (localBests[monthName] === undefined) {
-                    localBests[monthName] = {
-                      name: monthName,
-                      year: getRowYear(parsedCSVRowData.date),
-                      rowErg: _.cloneDeep(DEFAULT_RECORD_DATA),
-                      bikeErg: _.cloneDeep(DEFAULT_RECORD_DATA),
-                      skiErg: _.cloneDeep(DEFAULT_RECORD_DATA),
-                      rowErgCount: 0,
-                      bikeErgCount: 0,
-                      skiErgCount: 0,
-                      rowErgSessionsByDayOfMonth: [...Array(32)].map(
-                        (): SessionDataIF[] => [],
-                      ),
-                      bikeErgSessionsByDayOfMonth: [...Array(32)].map(
-                        (): SessionDataIF[] => [],
-                      ),
-                      skiErgSessionsByDayOfMonth: [...Array(32)].map(
-                        (): SessionDataIF[] => [],
-                      ),
-                    } as const;
+                  // there is no data for this year, create the year and populate it
+                  if (localBests[localYear] === undefined) {
+                    localBests[localYear] = {};
+                    englishMonths.map((month) => {
+                      localBests[localYear][month] = _.cloneDeep(
+                        buildEmptyMonth(month, localYear),
+                      );
+                    });
                   }
 
-                  const localErgType = localBests?.[monthName]?.[ergType];
-                  if (localErgType) {
+                  // build "bests" data object for this particular machine
+                  const monthIdx = getMonthNumber(parsedCSVRowData.date) - 1;
+                  const monthName = englishMonths[monthIdx];
+                  const ergMachineData =
+                    localBests?.[localYear]?.[monthName]?.[ergType];
+                  if (ergMachineData) {
                     // Update best distance, if better
                     if (
                       parsedCSVRowData.workDistance >
-                      Number(localErgType.bestDistance.value ?? 0)
+                      Number(ergMachineData.bestDistance.value ?? 0)
                     ) {
-                      localErgType.bestDistance.value =
+                      ergMachineData.bestDistance.value =
                         parsedCSVRowData.workDistance;
-                      localErgType.bestDistance.date = parsedCSVRowData.date;
-                      localErgType.bestDistance.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestDistance.date = parsedCSVRowData.date;
+                      ergMachineData.bestDistance.workoutId =
+                        parsedCSVRowData.id;
                     }
 
                     // Update best pace, if better
                     if (
                       parseTimeToMilliseconds(parsedCSVRowData.pace) <
                       parseTimeToMilliseconds(
-                        String(localErgType.bestPace.value),
+                        String(ergMachineData.bestPace.value),
                       )
                     ) {
-                      localErgType.bestPace.value = parsedCSVRowData.pace;
-                      localErgType.bestPace.date = parsedCSVRowData.date;
-                      localErgType.bestPace.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestPace.value = parsedCSVRowData.pace;
+                      ergMachineData.bestPace.date = parsedCSVRowData.date;
+                      ergMachineData.bestPace.workoutId = parsedCSVRowData.id;
                     }
 
                     // Update best strokeRate, if better
                     if (
                       parsedCSVRowData.strokeRate >
-                      Number(localErgType.bestStroke.value)
+                      Number(ergMachineData.bestStroke.value)
                     ) {
-                      localErgType.bestStroke.value =
+                      ergMachineData.bestStroke.value =
                         parsedCSVRowData.strokeRate;
-                      localErgType.bestStroke.date = parsedCSVRowData.date;
-                      localErgType.bestStroke.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestStroke.date = parsedCSVRowData.date;
+                      ergMachineData.bestStroke.workoutId = parsedCSVRowData.id;
                     }
 
                     // Update best workTime, if better
                     if (
                       Number(parsedCSVRowData.workTime) >
-                      Number(localErgType.bestWorkTime.value)
+                      Number(ergMachineData.bestWorkTime.value)
                     ) {
-                      localErgType.bestWorkTime.value =
+                      ergMachineData.bestWorkTime.value =
                         parsedCSVRowData.workTime;
-                      localErgType.bestWorkTime.date = parsedCSVRowData.date;
-                      localErgType.bestWorkTime.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestWorkTime.date = parsedCSVRowData.date;
+                      ergMachineData.bestWorkTime.workoutId =
+                        parsedCSVRowData.id;
                     }
                   }
 
@@ -437,7 +407,7 @@ function App() {
                     month: getMonthNumber(parsedCSVRowData.date),
                   };
 
-                  const month = localBests[monthName];
+                  const month = localBests[localYear][monthName];
 
                   if (ergType === "rowErg") {
                     dispatch(setHasRowErg());
@@ -615,10 +585,10 @@ function App() {
                 {years && (
                   <div>
                     <Select
-                      value={years[0]}
+                      value={ergDataState.viewingYear}
                       disabled={calendarViewMode != "calendarYear"}
                       data={years.map((year) => String(year))}
-                      onChange={() => handleSelectYear}
+                      onChange={(year) => handleSelectYear(year)}
                     ></Select>
                   </div>
                 )}

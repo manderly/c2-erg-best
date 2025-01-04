@@ -9,10 +9,22 @@ import {
   getYear,
   intervalToDuration,
 } from "date-fns";
+import { csvRow, ParsedCSVRowDataIF } from "../types/types.ts";
 
-export const isCurrentMonth = (month: string) => {
-  const currentMonth = getMonth(new Date()) + 1;
-  return currentMonth === Number(month);
+export const isCurrentMonthAndYear = (month: string, year: string) => {
+  const currentMonth = getMonth(new Date());
+  const currentYear = getYear(new Date());
+  return currentMonth === Number(month) && currentYear === Number(year);
+};
+
+export const isFutureMonthAndYear = (month: string, year: string) => {
+  const currentMonth = getMonth(new Date());
+  const currentYear = getYear(new Date());
+
+  const cardYear = Number(year);
+  const cardMonth = Number(month);
+
+  return cardYear >= currentYear && cardMonth > currentMonth;
 };
 
 /**
@@ -178,4 +190,31 @@ export const getFormattedErgName = (
 
 export const getFullDate = (timestamp: number) => {
   return format(fromUnixTime(timestamp), "EEEE, MMM d, yyyy");
+};
+
+export const getErgTypeFromRow = (row: csvRow) => {
+  return (String(row[19]).charAt(0).toLowerCase() +
+    String(row[19]).slice(1)) as "bikeErg" | "rowErg" | "skiErg";
+};
+
+export const getRowData = (row: csvRow): ParsedCSVRowDataIF => {
+  return {
+    date: getDateSinceEpoch(String(row[1])),
+    day: getDayOfMonth(String(row[1])),
+    startTime: getFormattedTime(String(row[1])),
+    type: getErgTypeFromRow(row),
+    description: String(row[2]),
+    pace: String(row[11]), // example: 2:37.4
+    workTime: Number(row[4]), // example: 1234.5
+    restTime: Number(row[6]),
+    workDistance: getFormattedDistance(row[7] as string),
+    restDistance: getFormattedDistance(row[8] as string),
+    strokeRate: Number(row[9]),
+    strokeCount: Number(row[10]),
+    totalCal: `${row[14]} (${row[13]} cal/hr)`,
+    avgHeartRate: Number(row[15]),
+    dragFactor: Number(row[16]),
+    ranked: Boolean(row[20]),
+    id: String(row[0]),
+  };
 };

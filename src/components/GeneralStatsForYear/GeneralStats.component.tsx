@@ -34,7 +34,7 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({
         className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""} flex-column`}
       >
         <h2>
-          Your Erg Data {ergDataState.viewingYear}{" "}
+          Your Erg Data Summary (all files)
           {`${ergDataState.isDoneLoadingCSVData ? "🏅" : ""}`}
         </h2>
         <ErgDataSummary label={"Files uploaded"} value={fileCount} />

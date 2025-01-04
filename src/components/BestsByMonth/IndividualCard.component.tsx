@@ -4,7 +4,8 @@ import { MonthDataIF } from "../../types/types.ts";
 import {
   getFormattedDistanceString,
   getFormattedDuration,
-  isCurrentMonth,
+  isCurrentMonthAndYear,
+  isFutureMonthAndYear,
 } from "../../services/formatting_utils.ts";
 import { ErgData } from "./ErgData.tsx";
 import CalendarComponent from "./Calendar.component.tsx";
@@ -35,14 +36,17 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
       data.skiErg.workTimeSum,
   );
 
+  const current = isCurrentMonthAndYear(month, String(data.year));
+  const future = isFutureMonthAndYear(month, String(data.year));
+
   return (
     <Card
-      className={`month-card ${isCurrentMonth(month) ? "current-month" : ""}`}
+      className={`month-card ${current ? "current-month" : ""} ${future ? "month-card-dim" : ""}`}
     >
       <div className={"month-card-title pad-bottom"}>
         <span className={"month-name"}>{data.name}</span>
         <span className={"year-name"}>
-          {data.year === 0 ? "No data yet" : data.year}
+          {future ? "No data yet" : data.year}
         </span>
       </div>
       <CalendarComponent month={month} data={data} />
