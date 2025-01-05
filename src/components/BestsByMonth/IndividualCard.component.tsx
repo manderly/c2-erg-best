@@ -23,7 +23,10 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
   data,
 }) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
-  const combinedCount = data.rowErgCount + data.bikeErgCount + data.skiErgCount;
+  const combinedCount =
+    data.rowErg?.sessionCount +
+    data.bikeErg?.sessionCount +
+    data.skiErg?.sessionCount;
   const combinedMeters = getFormattedDistanceString(
     data.rowErg.workDistanceSum +
       data.bikeErg.workDistanceSum +
@@ -60,7 +63,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
         <ErgData
           label="RowErg"
           data={data.rowErg}
-          workoutCount={data.rowErgCount}
+          workoutCount={data["rowErg"].sessionCount}
           distanceUnits="500"
           strokeUnits="per min"
         />
@@ -69,7 +72,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
         <ErgData
           label="BikeErg"
           data={data.bikeErg}
-          workoutCount={data.bikeErgCount}
+          workoutCount={data["bikeErg"].sessionCount}
           distanceUnits="1,000"
           strokeUnits="rpm"
         />
@@ -78,7 +81,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
         <ErgData
           label="SkiErg"
           data={data.skiErg}
-          workoutCount={data.skiErgCount}
+          workoutCount={data["skiErg"].sessionCount}
           strokeUnits={"minutes"}
         />
       )}

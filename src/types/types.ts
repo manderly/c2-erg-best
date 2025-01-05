@@ -32,65 +32,19 @@ export interface ParsedCSVRowDataIF {
 export interface MonthDataIF {
   name: string;
   year: number;
-  rowErg: BestDataForErgIF;
-  bikeErg: BestDataForErgIF;
-  skiErg: BestDataForErgIF;
-  rowErgCount: number;
-  bikeErgCount: number;
-  skiErgCount: number;
+  rowErg: MonthSummaryForErgIF;
+  bikeErg: MonthSummaryForErgIF;
+  skiErg: MonthSummaryForErgIF;
   rowErgSessionsByDayOfMonth: SessionDataIF[][] | [];
   bikeErgSessionsByDayOfMonth: SessionDataIF[][] | [];
   skiErgSessionsByDayOfMonth: SessionDataIF[][] | [];
 }
 
-export type LocalBests = {
+export type ErgDataByYear = {
   [year: string]: {
     [month: string]: MonthDataIF;
   };
 };
-
-export interface TrendDataGroupedIF {
-  month: number;
-  value: number; // sum of meters or average pace in milliseconds
-  ergType: ErgType;
-  stat: "distance" | "pace";
-}
-
-export interface TrendsDataIF {
-  distance: {
-    rowErg: TrendDataGroupedIF[];
-    bikeErg: TrendDataGroupedIF[];
-    skiErg: TrendDataGroupedIF[];
-  };
-  pace: {
-    rowErg: TrendDataGroupedIF[];
-    bikeErg: TrendDataGroupedIF[];
-    skiErg: TrendDataGroupedIF[];
-  };
-  time: {
-    rowErg: TrendDataGroupedIF[];
-    bikeErg: TrendDataGroupedIF[];
-    skiErg: TrendDataGroupedIF[];
-  };
-}
-
-export interface DateAndDistanceIF {
-  date: number;
-  distance: number;
-  month: number;
-}
-
-export interface DateAndPaceIF {
-  date: number;
-  pace: number;
-  month: number;
-}
-
-export interface DateAndWorkTimeIF {
-  date: number;
-  workTime: number;
-  month: number;
-}
 
 export type WorkoutDataType = {
   data: DisplayRowType;
@@ -102,13 +56,16 @@ export interface BestWorkoutInCategoryIF {
   workoutId: string;
 }
 
-export interface BestDataForErgIF {
+export interface MonthSummaryForErgIF {
   bestDistance: BestWorkoutInCategoryIF;
   bestPace: BestWorkoutInCategoryIF;
   bestStroke: BestWorkoutInCategoryIF;
   bestWorkTime: BestWorkoutInCategoryIF;
   workDistanceSum: number;
+  restDistanceSum: number;
   workTimeSum: number;
+  restTimeSum: number;
+  sessionCount: number;
 }
 
 export interface RowIF {
@@ -135,4 +92,11 @@ export interface GeneralStatDataIF {
   earliestDate: number;
   latestDate: number;
   years: string[];
+}
+
+export interface TrendDataIF {
+  month: string;
+  value: number;
+  ergType: ErgType;
+  stat: "distance";
 }

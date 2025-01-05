@@ -1,18 +1,20 @@
 import { Grid, Radio, RadioGroup } from "@mantine/core";
 import { BarChartComponent } from "./BarChart.component.tsx";
 import { getFormattedDistanceString } from "../../services/formatting_utils.ts";
-import { useState } from "react";
-import { TrendsDataIF } from "../../types/types.ts";
+import { useEffect, useState } from "react";
+import { ErgDataByYear, ErgType, TrendDataIF } from "../../types/types.ts";
 import {
   BIKE_ERG_COLOR,
+  englishMonths,
   ROW_ERG_COLOR,
   SKI_ERG_COLOR,
 } from "../../consts/consts.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store.ts";
+import _ from "lodash";
 
 interface TrendsComponentIF {
-  trends: TrendsDataIF;
+  data: ErgDataByYear;
 }
 
 function getColorForErgType(ergType: string) {
@@ -28,12 +30,31 @@ function getColorForErgType(ergType: string) {
   }
 }
 
-export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
+export const TrendsComponent: React.FC<TrendsComponentIF> = ({ data }) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
-  const [chartErgType, setChartErgType] = useState("rowErg");
+  const [chartErgType, setChartErgType] = useState<ErgType>("rowErg");
+  const [aggregatedDistanceData, setAggregatedDistanceData] =
+    useState<TrendDataIF[]>();
+
+  useEffect(() => {
+    if (data && !_.isEmpty(data)) {
+      const selectedYearData = _.get(data, ergDataState.viewingYear);
+      const monthData: TrendDataIF[] = englishMonths.map((month) => {
+        return {
+          month: month,
+          value: selectedYearData[month]?.[chartErgType]?.workDistanceSum ?? 0,
+          ergType: chartErgType,
+          stat: "distance",
+        };
+      });
+      setAggregatedDistanceData(monthData);
+    }
+  }, [data, chartErgType, ergDataState.viewingYear]);
+
+  if (!data || _.isEmpty(data)) return null;
 
   const handleChartErgTypeRadio = (e: string) => {
-    setChartErgType(e);
+    setChartErgType(e as ErgType);
   };
 
   return (
@@ -41,15 +62,7 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
       <Grid.Col span={9}>
         <BarChartComponent
           title={"Distance"}
-          data={
-            chartErgType === "rowErg"
-              ? trends?.distance.rowErg
-              : chartErgType === "bikeErg"
-                ? trends?.distance.bikeErg
-                : chartErgType === "skiErg"
-                  ? trends?.distance.skiErg
-                  : []
-          }
+          data={aggregatedDistanceData!}
           dataKey={"value"}
           hexFill={getColorForErgType(chartErgType)}
           tickFormatter={getFormattedDistanceString}
@@ -77,21 +90,6 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ trends }) => {
           />
         </RadioGroup>
       </Grid.Col>
-      {/*<BarChartComponent*/}
-      {/*  title={"Pace"}*/}
-      {/*  data={*/}
-      {/*    chartErgType === "rowErg"*/}
-      {/*      ? trends?.pace.rowErg*/}
-      {/*      : chartErgType === "bikeErg"*/}
-      {/*        ? trends?.pace.bikeErg*/}
-      {/*        : chartErgType === "skiErg"*/}
-      {/*          ? trends?.pace.skiErg*/}
-      {/*          : []*/}
-      {/*  }*/}
-      {/*  dataKey={"value"}*/}
-      {/*  hexFill={getColorForErgType(chartErgType)}*/}
-      {/*  tickFormatter={formatMillisecondsToTimestamp}*/}
-      {/*/>*/}
     </Grid>
   );
 };

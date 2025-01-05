@@ -27,17 +27,11 @@ import {
 } from "./services/formatting_utils";
 import { MonthCards } from "./components/BestsByMonth/MonthCards.tsx";
 import {
-  BestDataForErgIF,
-  ErgType,
+  MonthSummaryForErgIF,
   ParsedCSVRowDataIF,
-  DateAndDistanceIF,
-  DateAndPaceIF,
-  LocalBests,
-  TrendsDataIF,
-  DateAndWorkTimeIF,
+  ErgDataByYear,
   WorkDistanceSumsIF,
   SessionDataIF,
-  TrendDataGroupedIF,
   ViewMode,
   GeneralStatDataIF,
   csvRow,
@@ -61,7 +55,7 @@ const localCSVFiles = [
   "/concept2-season-2025.csv",
 ];
 
-const DEFAULT_RECORD_DATA: BestDataForErgIF = {
+const DEFAULT_RECORD_DATA: MonthSummaryForErgIF = {
   bestDistance: {
     value: 0,
     date: 0,
@@ -83,7 +77,10 @@ const DEFAULT_RECORD_DATA: BestDataForErgIF = {
     workoutId: "",
   },
   workDistanceSum: 0,
+  restDistanceSum: 0,
   workTimeSum: 0,
+  restTimeSum: 0,
+  sessionCount: 0,
 };
 
 const workDistanceSums: WorkDistanceSumsIF = {
@@ -104,8 +101,7 @@ function App() {
   const [unfilteredRowData, setUnfilteredRowData] = useState<
     ParsedCSVRowDataIF[]
   >([]);
-  const [bests, setBests] = useState({});
-  const [trends, setTrends] = useState<TrendsDataIF | undefined>(undefined);
+  const [ergDataByYear, setErgDataByYear] = useState<ErgDataByYear>({});
   const [generalStatData, setGeneralStatData] = useState<GeneralStatDataIF>({
     totalMeters: 0,
     totalErgTime: 0,
@@ -147,46 +143,6 @@ function App() {
       )}
     </>
   );
-
-  const groupTrendDataByMonth = (
-    data: DateAndDistanceIF[] | DateAndPaceIF[] | DateAndWorkTimeIF[],
-    stat: "distance" | "pace" | "workTime",
-    ergType: ErgType,
-  ): TrendDataGroupedIF[] => {
-    const grouped = _.groupBy(data, "month");
-    const allMonths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
-    if (stat === "distance") {
-      return allMonths.map((month) => ({
-        month: month,
-        value: grouped[month] ? _.sumBy(grouped[month], stat) : 0, // default to 0 if month has no data
-        ergType: ergType,
-        stat: "distance",
-      }));
-    } else if (stat === "pace") {
-      // sum the paces and average them (the average pace for January was xx:yy)
-      return allMonths.map((month) => {
-        const items = grouped[month] || []; // Get the grouped items for the month or an empty array
-        const total = _.sumBy(items, stat); // Sum the `pace` values
-        const count = items.length; // Count the number of items for the month
-        const average = count > 0 ? total / count : 0; // Calculate the average or default to 0
-
-        return {
-          month: month,
-          value: average,
-          ergType: ergType,
-          stat: "pace",
-        };
-      });
-    } else {
-      return allMonths.map((month) => ({
-        month: month,
-        value: 0,
-        ergType: ergType,
-        stat: "distance",
-      }));
-    }
-  };
 
   const getSessionData = (parsedCSVRowData: ParsedCSVRowDataIF) => {
     return {
@@ -244,20 +200,12 @@ function App() {
     }
   };
 
-  const localDistanceTrendsRow: DateAndDistanceIF[] = [];
-  const localPaceTrendsRow: DateAndPaceIF[] = [];
-  const localWorkTimeTrendsRow: DateAndWorkTimeIF[] = [];
-
-  const localDistanceTrendsBike: DateAndDistanceIF[] = [];
-  const localPaceTrendsBike: DateAndPaceIF[] = [];
-  const localWorkTimeTrendsBike: DateAndWorkTimeIF[] = [];
-
-  const localDistanceTrendsSki: DateAndDistanceIF[] = [];
-  const localPaceTrendsSki: DateAndPaceIF[] = [];
-  const localWorkTimeTrendsSki: DateAndWorkTimeIF[] = [];
-
   const combinedUnfilteredRowData: ParsedCSVRowDataIF[] = [];
-  const localBests: LocalBests = {};
+
+  // Build an object that conforms to the established type, then set its state variable
+  // once all data is done processing
+  const localErgDataByYear: ErgDataByYear = {};
+
   let localMetersSum = 0;
   let localErgTimeSum = 0;
   let localEarliestDate = RIDICULOUS_FUTURE_TIMESTAMP;
@@ -270,9 +218,6 @@ function App() {
       rowErg: _.cloneDeep(DEFAULT_RECORD_DATA),
       bikeErg: _.cloneDeep(DEFAULT_RECORD_DATA),
       skiErg: _.cloneDeep(DEFAULT_RECORD_DATA),
-      rowErgCount: 0,
-      bikeErgCount: 0,
-      skiErgCount: 0,
       rowErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
       bikeErgSessionsByDayOfMonth: [...Array(32)].map(
         (): SessionDataIF[] => [],
@@ -296,252 +241,133 @@ function App() {
                 .orderBy((row: csvRow) => row[1]) // date
                 .map((row: csvRow) => {
                   // extract data from csv row
-                  const parsedCSVRowData: ParsedCSVRowDataIF = getRowData(row);
+                  const parsedCSVRow: ParsedCSVRowDataIF = getRowData(row);
                   const ergType = getErgTypeFromRow(row);
 
                   // update earliest and latest date, if applicable
-                  if (parsedCSVRowData.date < localEarliestDate) {
-                    localEarliestDate = parsedCSVRowData.date;
+                  if (parsedCSVRow.date < localEarliestDate) {
+                    localEarliestDate = parsedCSVRow.date;
                   }
-                  if (parsedCSVRowData.date > localLatestDate) {
-                    localLatestDate = parsedCSVRowData.date;
+                  if (parsedCSVRow.date > localLatestDate) {
+                    localLatestDate = parsedCSVRow.date;
                   }
 
                   // add this year to years if we don't have it already
-                  const localYear = String(getRowYear(parsedCSVRowData.date));
+                  const localYear = String(getRowYear(parsedCSVRow.date));
                   if (!localYears.includes(localYear)) {
                     localYears.push(localYear);
                   }
 
                   // add these meters to the sum
                   localMetersSum +=
-                    parsedCSVRowData.workDistance +
-                    parsedCSVRowData.restDistance;
+                    parsedCSVRow.workDistance + parsedCSVRow.restDistance;
                   localErgTimeSum +=
-                    Number(parsedCSVRowData.workTime) +
-                    Number(parsedCSVRowData.restTime);
+                    Number(parsedCSVRow.workTime) +
+                    Number(parsedCSVRow.restTime);
 
                   // there is no data for this year, create the year and populate it
-                  if (localBests[localYear] === undefined) {
-                    localBests[localYear] = {};
+                  if (localErgDataByYear[localYear] === undefined) {
+                    localErgDataByYear[localYear] = {};
                     englishMonths.map((month) => {
-                      localBests[localYear][month] = _.cloneDeep(
+                      localErgDataByYear[localYear][month] = _.cloneDeep(
                         buildEmptyMonth(month, localYear),
                       );
                     });
                   }
 
                   // build "bests" data object for this particular machine
-                  const monthIdx = getMonthNumber(parsedCSVRowData.date) - 1;
+                  const monthIdx = getMonthNumber(parsedCSVRow.date) - 1;
                   const monthName = englishMonths[monthIdx];
                   const ergMachineData =
-                    localBests?.[localYear]?.[monthName]?.[ergType];
+                    localErgDataByYear?.[localYear]?.[monthName]?.[ergType];
                   if (ergMachineData) {
                     // Update best distance, if better
                     if (
-                      parsedCSVRowData.workDistance >
+                      parsedCSVRow.workDistance >
                       Number(ergMachineData.bestDistance.value ?? 0)
                     ) {
                       ergMachineData.bestDistance.value =
-                        parsedCSVRowData.workDistance;
-                      ergMachineData.bestDistance.date = parsedCSVRowData.date;
-                      ergMachineData.bestDistance.workoutId =
-                        parsedCSVRowData.id;
+                        parsedCSVRow.workDistance;
+                      ergMachineData.bestDistance.date = parsedCSVRow.date;
+                      ergMachineData.bestDistance.workoutId = parsedCSVRow.id;
                     }
 
                     // Update best pace, if better
                     if (
-                      parseTimeToMilliseconds(parsedCSVRowData.pace) <
+                      parseTimeToMilliseconds(parsedCSVRow.pace) <
                       parseTimeToMilliseconds(
                         String(ergMachineData.bestPace.value),
                       )
                     ) {
-                      ergMachineData.bestPace.value = parsedCSVRowData.pace;
-                      ergMachineData.bestPace.date = parsedCSVRowData.date;
-                      ergMachineData.bestPace.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestPace.value = parsedCSVRow.pace;
+                      ergMachineData.bestPace.date = parsedCSVRow.date;
+                      ergMachineData.bestPace.workoutId = parsedCSVRow.id;
                     }
 
                     // Update best strokeRate, if better
                     if (
-                      parsedCSVRowData.strokeRate >
+                      parsedCSVRow.strokeRate >
                       Number(ergMachineData.bestStroke.value)
                     ) {
-                      ergMachineData.bestStroke.value =
-                        parsedCSVRowData.strokeRate;
-                      ergMachineData.bestStroke.date = parsedCSVRowData.date;
-                      ergMachineData.bestStroke.workoutId = parsedCSVRowData.id;
+                      ergMachineData.bestStroke.value = parsedCSVRow.strokeRate;
+                      ergMachineData.bestStroke.date = parsedCSVRow.date;
+                      ergMachineData.bestStroke.workoutId = parsedCSVRow.id;
                     }
 
                     // Update best workTime, if better
                     if (
-                      Number(parsedCSVRowData.workTime) >
+                      Number(parsedCSVRow.workTime) >
                       Number(ergMachineData.bestWorkTime.value)
                     ) {
-                      ergMachineData.bestWorkTime.value =
-                        parsedCSVRowData.workTime;
-                      ergMachineData.bestWorkTime.date = parsedCSVRowData.date;
-                      ergMachineData.bestWorkTime.workoutId =
-                        parsedCSVRowData.id;
+                      ergMachineData.bestWorkTime.value = parsedCSVRow.workTime;
+                      ergMachineData.bestWorkTime.date = parsedCSVRow.date;
+                      ergMachineData.bestWorkTime.workoutId = parsedCSVRow.id;
                     }
                   }
 
-                  /**
-                   * Multiple workouts of the same type in the same day are aggregated
-                   * for the sake of calculating day-over-day trends
-                   **/
-                  const newDistance: DateAndDistanceIF = {
-                    date: parsedCSVRowData.date,
-                    distance:
-                      parsedCSVRowData.workDistance +
-                      parsedCSVRowData.restDistance,
-                    month: getMonthNumber(parsedCSVRowData.date),
-                  };
-                  const newPace: DateAndPaceIF = {
-                    date: parsedCSVRowData.date,
-                    pace: parseTimeToMilliseconds(parsedCSVRowData.pace),
-                    month: getMonthNumber(parsedCSVRowData.date),
-                  };
-                  const newWorkTime: DateAndWorkTimeIF = {
-                    date: parsedCSVRowData.date,
-                    workTime: parsedCSVRowData.workTime,
-                    month: getMonthNumber(parsedCSVRowData.date),
-                  };
+                  const month = localErgDataByYear[localYear][monthName];
 
-                  const month = localBests[localYear][monthName];
+                  month[ergType].sessionCount += 1;
+                  month[ergType].workDistanceSum += parsedCSVRow.workDistance;
+                  month[ergType].restDistanceSum += parsedCSVRow.restDistance;
+                  month[ergType].workTimeSum += parsedCSVRow.workTime;
+                  month[ergType].restTimeSum += parsedCSVRow.restTime;
+                  workDistanceSums[ergType] += parsedCSVRow.workDistance;
 
                   if (ergType === "rowErg") {
                     dispatch(setHasRowErg());
-                    localDistanceTrendsRow.push(newDistance);
-                    localPaceTrendsRow.push(newPace);
-                    localWorkTimeTrendsRow.push(newWorkTime);
-                    if (month?.rowErgCount !== undefined) {
-                      month.rowErgCount = month.rowErgCount + 1;
-
-                      // push new entry to the correct day of the month array
-                      const newSession = getSessionData(parsedCSVRowData);
-                      month.rowErgSessionsByDayOfMonth[
-                        parsedCSVRowData.day
-                      ].push(newSession);
-
-                      month.rowErg.workDistanceSum =
-                        month.rowErg.workDistanceSum +
-                        parsedCSVRowData.workDistance +
-                        parsedCSVRowData.restDistance;
-                      month.rowErg.workTimeSum =
-                        month.rowErg.workTimeSum + parsedCSVRowData.workTime;
-                      workDistanceSums.rowErg =
-                        workDistanceSums.rowErg + parsedCSVRowData.workDistance;
-                    }
+                    // push new entry to the correct day of the month array
+                    const newSession = getSessionData(parsedCSVRow);
+                    month.rowErgSessionsByDayOfMonth[parsedCSVRow.day].push(
+                      newSession,
+                    );
                   } else if (ergType === "bikeErg") {
                     dispatch(setHasBikeErg());
-                    localDistanceTrendsBike.push(newDistance);
-                    localPaceTrendsBike.push(newPace);
-                    localWorkTimeTrendsBike.push(newWorkTime);
-                    if (month?.bikeErgCount !== undefined) {
-                      month.bikeErgCount = month.bikeErgCount + 1;
 
-                      // push new entry to the correct day of the month array
-                      const newSession = getSessionData(parsedCSVRowData);
-                      month.bikeErgSessionsByDayOfMonth[
-                        parsedCSVRowData.day
-                      ].push(newSession);
-
-                      month.bikeErg.workDistanceSum =
-                        month.bikeErg.workDistanceSum +
-                        parsedCSVRowData.workDistance;
-                      month.bikeErg.workTimeSum =
-                        month.bikeErg.workTimeSum + parsedCSVRowData.workTime;
-                      workDistanceSums.bikeErg =
-                        workDistanceSums.bikeErg +
-                        parsedCSVRowData.workDistance;
-                    }
+                    // push new entry to the correct day of the month array
+                    const newSession = getSessionData(parsedCSVRow);
+                    month.bikeErgSessionsByDayOfMonth[parsedCSVRow.day].push(
+                      newSession,
+                    );
                   } else if (ergType === "skiErg") {
                     dispatch(setHasSkiErg());
-                    localDistanceTrendsSki.push(newDistance);
-                    localPaceTrendsSki.push(newPace);
-                    localWorkTimeTrendsSki.push(newWorkTime);
-                    if (month?.skiErgCount !== undefined) {
-                      month.skiErgCount = month.skiErgCount + 1;
+                    month["skiErg"].sessionCount += 1;
 
-                      // push new entry to the correct day of the month array
-                      const newSession = getSessionData(parsedCSVRowData);
-                      month.skiErgSessionsByDayOfMonth[
-                        parsedCSVRowData.day
-                      ].push(newSession);
-
-                      month.skiErg.workDistanceSum =
-                        month.skiErg.workDistanceSum +
-                        parsedCSVRowData.workDistance;
-                      month.skiErg.workTimeSum =
-                        month.skiErg.workTimeSum + parsedCSVRowData.workTime;
-                      workDistanceSums.skiErg =
-                        workDistanceSums.skiErg + parsedCSVRowData.workDistance;
-                    }
+                    // push new entry to the correct day of the month array
+                    const newSession = getSessionData(parsedCSVRow);
+                    month.skiErgSessionsByDayOfMonth[parsedCSVRow.day].push(
+                      newSession,
+                    );
                   } else {
                     console.log("Unsupported erg type found: " + ergType);
                   }
 
-                  combinedUnfilteredRowData.push(parsedCSVRowData);
-                  return parsedCSVRowData;
+                  combinedUnfilteredRowData.push(parsedCSVRow);
+                  return parsedCSVRow;
                 })
                 .value();
 
-              setBests(localBests);
-
-              setTrends({
-                distance: {
-                  rowErg: groupTrendDataByMonth(
-                    localDistanceTrendsRow,
-                    "distance",
-                    "rowErg",
-                  ),
-                  bikeErg: groupTrendDataByMonth(
-                    localDistanceTrendsBike,
-                    "distance",
-                    "bikeErg",
-                  ),
-                  skiErg: groupTrendDataByMonth(
-                    localDistanceTrendsSki,
-                    "distance",
-                    "skiErg",
-                  ),
-                },
-                pace: {
-                  rowErg: groupTrendDataByMonth(
-                    localPaceTrendsRow,
-                    "pace",
-                    "rowErg",
-                  ),
-                  bikeErg: groupTrendDataByMonth(
-                    localPaceTrendsBike,
-                    "pace",
-                    "bikeErg",
-                  ),
-                  skiErg: groupTrendDataByMonth(
-                    localPaceTrendsSki,
-                    "pace",
-                    "skiErg",
-                  ),
-                },
-                time: {
-                  rowErg: groupTrendDataByMonth(
-                    localWorkTimeTrendsRow,
-                    "workTime",
-                    "rowErg",
-                  ),
-                  bikeErg: groupTrendDataByMonth(
-                    localWorkTimeTrendsBike,
-                    "workTime",
-                    "bikeErg",
-                  ),
-                  skiErg: groupTrendDataByMonth(
-                    localWorkTimeTrendsSki,
-                    "workTime",
-                    "skiErg",
-                  ),
-                },
-              });
-
+              setErgDataByYear(localErgDataByYear);
               setGeneralStatData({
                 totalMeters: localMetersSum,
                 totalErgTime: localErgTimeSum,
@@ -669,7 +495,9 @@ function App() {
       >
         Your Erg Trends {ergDataState.viewingYear}
       </h2>
-      <div>{trends !== undefined && <TrendsComponent trends={trends} />}</div>
+      <div>
+        <TrendsComponent data={ergDataByYear} />
+      </div>
     </div>
   );
 
@@ -713,16 +541,14 @@ function App() {
           </Grid>
 
           {/* Proportions bar */}
-          <Grid>
-            <div className={"proportions-bar-container"}>
-              <ErgProportions workDistanceSums={workDistanceSums} />
-            </div>
-          </Grid>
+          <div className={"proportions-bar-container"}>
+            <ErgProportions workDistanceSums={workDistanceSums} />
+          </div>
 
           {/* Month cards */}
           <Grid grow>
             <Grid.Col span={12}>
-              <MonthCards bests={bests} />
+              <MonthCards data={ergDataByYear} />
             </Grid.Col>
           </Grid>
 

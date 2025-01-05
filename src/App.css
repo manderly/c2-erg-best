@@ -360,7 +360,7 @@ h4 {
 /* Override Mantine radio group defaults */
 .radio-card {
   border: none !important;
-  padding: 10px !important;
+  padding: 6px !important;
 }
 .radio-title {
   font-size:14px !important;

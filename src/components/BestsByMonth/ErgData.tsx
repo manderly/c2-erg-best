@@ -1,4 +1,4 @@
-import { BestDataForErgIF } from "../../types/types.ts";
+import { MonthSummaryForErgIF } from "../../types/types.ts";
 import DisplayBestStroke from "./DisplayBestStroke.tsx";
 import DisplayBestDistance from "./DisplayBestDistance.tsx";
 import DisplayBestPace from "./DisplayBestPace.tsx";
@@ -12,7 +12,7 @@ import TotalsComponent from "../TotalsComponent.tsx";
 
 interface ErgDataIF {
   label: string;
-  data: BestDataForErgIF;
+  data: MonthSummaryForErgIF;
   workoutCount: number;
   distanceUnits?: string;
   strokeUnits?: string;

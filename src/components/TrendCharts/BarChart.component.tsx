@@ -8,13 +8,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { TrendDataGroupedIF } from "../../types/types.ts";
-import { englishMonthsAbbreviations } from "../../consts/consts.ts";
 import { TrendTooltip } from "./TrendTooltip.component.tsx";
+import { TrendDataIF } from "../../types/types.ts";
 
 interface BarChartComponentIF {
   title: string;
-  data: TrendDataGroupedIF[];
+  data: TrendDataIF[];
   dataKey: string;
   hexFill: string;
   tickFormatter: (item: number | string | undefined) => string;
@@ -27,10 +26,10 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
   hexFill,
   tickFormatter,
 }) => {
-  const numberToMonthAbbreviation = (num: number) => {
-    return englishMonthsAbbreviations[num - 1];
+  const firstLetter = (monthName: string) => {
+    return monthName[0];
   };
-  const ergType = data[0].ergType;
+  const ergType = "rowErg";
 
   return (
     <>
@@ -54,7 +53,7 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
             bottom: 0,
           }}
         >
-          <XAxis dataKey="month" tickFormatter={numberToMonthAbbreviation} />
+          <XAxis dataKey="month" tickFormatter={firstLetter} />
           <YAxis dataKey={dataKey} tickFormatter={tickFormatter} />
           <Tooltip content={<TrendTooltip />} />
           <Legend layout="horizontal" verticalAlign="bottom" align="left" />
