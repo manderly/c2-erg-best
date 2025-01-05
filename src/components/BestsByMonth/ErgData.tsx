@@ -1,4 +1,4 @@
-import { MonthSummaryForErgIF } from "../../types/types.ts";
+import { ErgType, MonthSummaryForErgIF } from "../../types/types.ts";
 import DisplayBestStroke from "./DisplayBestStroke.tsx";
 import DisplayBestDistance from "./DisplayBestDistance.tsx";
 import DisplayBestPace from "./DisplayBestPace.tsx";
@@ -7,12 +7,13 @@ import DisplayBestWorkTime from "./DisplayBestWorkTime.tsx";
 import {
   getFormattedDistanceString,
   getFormattedDuration,
+  getFormattedErgName,
 } from "../../services/formatting_utils.ts";
 import TotalsComponent from "../TotalsComponent.tsx";
 import DisplayBestWatts from "./DisplayBestWatts.tsx";
 
 interface ErgDataIF {
-  label: string;
+  label: ErgType;
   data: MonthSummaryForErgIF;
   workoutCount: number;
   distanceUnits?: string;
@@ -33,7 +34,9 @@ export const ErgData: React.FC<ErgDataIF> = ({
     <div className={`erg-data-bg erg-data-bg-${label}`}>
       {data && (
         <>
-          <strong className={`erg-type-label ${label}-label`}>{label}</strong>
+          <strong className={`erg-type-label ${label}-label`}>
+            {getFormattedErgName(label)}
+          </strong>
 
           {data.bestPace.value === "999:00.0" && (
             <div className="no-data-div">No {label} data for this month</div>

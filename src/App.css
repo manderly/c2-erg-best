@@ -53,6 +53,10 @@ h4 {
   font-size: 14px !important;
 }
 
+.width-100 {
+  width: 100%;
+}
+
 .filename-in-list {
   display: flex;
   flex-direction: row;
@@ -67,6 +71,8 @@ h4 {
   width: 100%;
   padding-top: 10px;
   padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed #7f99b2;
 }
 
 /* Override Mantine colors on 'x' button */
@@ -182,22 +188,40 @@ h4 {
   font-weight: bold;
 }
 
+.year-stat-box {
+  width: 100%;
+  margin-bottom:10px;
+  padding-left: 10px;
+}
+
 .erg-type-label {
   color: #333;
   padding: 6px;
   text-align: center;
 }
 
-.RowErg-label {
+.rowErg-label {
   background-color: #afbd22;
 }
 
-.BikeErg-label {
+.bikeErg-label {
   background-color: #b6c7d9;
 }
 
-.SkiErg-label {
+.skiErg-label {
   background-color: #EC8F4C;
+}
+
+.rowErg-border {
+  border: 1px solid #afbd22;
+}
+
+.bikeErg-border {
+  border: 1px solid #b6c7d9;
+}
+
+.skiErg-border {
+  border: 1px solid #EC8F4C;
 }
 
 .tiny-units {
@@ -244,19 +268,19 @@ h4 {
 }
 
 .erg-data-bg {
-  padding: 3px 1em 1em 1em;
+  padding: 0 1em 1em 1em;
   margin-bottom: 1em;
 }
 
-.erg-data-bg-RowErg {
+.erg-data-bg-rowErg {
   border: 1px solid #afbd22;
 }
 
-.erg-data-bg-BikeErg {
+.erg-data-bg-bikeErg {
   border: 1px solid #b6c7d9;
 }
 
-.erg-data-bg-SkiErg {
+.erg-data-bg-skiErg {
   border: 1px solid #EC8F4C;
 }
 

@@ -49,6 +49,7 @@ import ErgProportions from "./components/ErgProportionsMeter/ErgProportions.comp
 import GeneralStats from "./components/GeneralStatsForYear/GeneralStats.component.tsx";
 import { RootState } from "./store/store.ts";
 import { englishMonths, RIDICULOUS_FUTURE_TIMESTAMP } from "./consts/consts.ts";
+import YearOrSeasonStats from "./components/GeneralStatsForYear/YearOrSeasonStats.tsx";
 
 const localCSVFiles = [
   "/concept2-season-2024.csv",
@@ -549,16 +550,21 @@ function App() {
                 data={generalStatData}
               />
             </Grid.Col>
-
-            <Grid.Col span={{ base: 12, sm: 7 }}>
-              <GeneralTrends />
-            </Grid.Col>
           </Grid>
 
           {/* Proportions bar */}
           <div className={"proportions-bar-container"}>
             <ErgProportions workDistanceSums={workDistanceSums} />
           </div>
+
+          <Grid>
+            <Grid.Col span={{ base: 12, sm: 5 }}>
+              <YearOrSeasonStats data={ergDataByYear} />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 7 }}>
+              <GeneralTrends />
+            </Grid.Col>
+          </Grid>
 
           {/* Month cards */}
           <Grid grow>

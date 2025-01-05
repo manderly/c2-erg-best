@@ -61,7 +61,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
       />
       {ergDataState.hasRowErg && (
         <ErgData
-          label="RowErg"
+          label="rowErg"
           data={data.rowErg}
           workoutCount={data["rowErg"].sessionCount}
           distanceUnits="500"
@@ -70,7 +70,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
       )}
       {ergDataState.hasBikeErg && (
         <ErgData
-          label="BikeErg"
+          label="bikeErg"
           data={data.bikeErg}
           workoutCount={data["bikeErg"].sessionCount}
           distanceUnits="1,000"
@@ -79,7 +79,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
       )}
       {ergDataState.hasSkiErg && (
         <ErgData
-          label="SkiErg"
+          label="skiErg"
           data={data.skiErg}
           workoutCount={data["skiErg"].sessionCount}
           strokeUnits={"minutes"}

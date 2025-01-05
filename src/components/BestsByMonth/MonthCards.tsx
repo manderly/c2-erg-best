@@ -14,11 +14,6 @@ export const MonthCards: React.FC<MonthCardsIF> = ({ data }) => {
   const sorted = _.orderBy(data[ergDataState.viewingYear], "date");
   return (
     <>
-      {!_.isEmpty(data) ? (
-        <h2 className={"pad-bottom"}>{ergDataState.viewingYear}</h2>
-      ) : (
-        <></>
-      )}
       <div className={"month-cards"}>
         {Object.entries(sorted).map(([key, value]) => (
           <IndividualCardComponent
