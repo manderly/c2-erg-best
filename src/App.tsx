@@ -76,6 +76,11 @@ const DEFAULT_RECORD_DATA: MonthSummaryForErgIF = {
     date: 0,
     workoutId: "",
   },
+  bestWattsAvg: {
+    value: 0,
+    date: 0,
+    workoutId: "",
+  },
   workDistanceSum: 0,
   restDistanceSum: 0,
   workTimeSum: 0,
@@ -144,12 +149,12 @@ function App() {
     </>
   );
 
-  const getSessionData = (parsedCSVRowData: ParsedCSVRowDataIF) => {
+  const getSessionData = (parsedCSVRow: ParsedCSVRowDataIF) => {
     return {
-      date: parsedCSVRowData.date,
-      ergType: parsedCSVRowData.type,
-      distance: parsedCSVRowData.workDistance,
-      time: String(parsedCSVRowData.workTime),
+      date: parsedCSVRow.date,
+      ergType: parsedCSVRow.type,
+      distance: parsedCSVRow.workDistance,
+      time: String(parsedCSVRow.workTime),
     };
   };
 
@@ -322,6 +327,16 @@ function App() {
                       ergMachineData.bestWorkTime.value = parsedCSVRow.workTime;
                       ergMachineData.bestWorkTime.date = parsedCSVRow.date;
                       ergMachineData.bestWorkTime.workoutId = parsedCSVRow.id;
+                    }
+
+                    // Update best watts, if better
+                    if (
+                      Number(parsedCSVRow.watts) >
+                      Number(ergMachineData.bestWattsAvg.value)
+                    ) {
+                      ergMachineData.bestWattsAvg.value = parsedCSVRow.watts;
+                      ergMachineData.bestWattsAvg.date = parsedCSVRow.date;
+                      ergMachineData.bestWattsAvg.workoutId = parsedCSVRow.id;
                     }
                   }
 

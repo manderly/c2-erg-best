@@ -205,6 +205,7 @@ export const getRowData = (row: csvRow): ParsedCSVRowDataIF => {
     type: getErgTypeFromRow(row),
     description: String(row[2]),
     pace: String(row[11]), // example: 2:37.4
+    watts: Number(row[12]),
     workTime: Number(row[4]), // example: 1234.5
     restTime: Number(row[6]),
     workDistance: getFormattedDistance(row[7] as string),

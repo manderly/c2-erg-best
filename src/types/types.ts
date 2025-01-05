@@ -16,6 +16,7 @@ export interface ParsedCSVRowDataIF {
   type: ErgType;
   description: string;
   pace: string;
+  watts: number;
   workTime: number;
   restTime: number;
   workDistance: number;
@@ -61,6 +62,7 @@ export interface MonthSummaryForErgIF {
   bestPace: BestWorkoutInCategoryIF;
   bestStroke: BestWorkoutInCategoryIF;
   bestWorkTime: BestWorkoutInCategoryIF;
+  bestWattsAvg: BestWorkoutInCategoryIF;
   workDistanceSum: number;
   restDistanceSum: number;
   workTimeSum: number;

@@ -9,6 +9,7 @@ import {
   getFormattedDuration,
 } from "../../services/formatting_utils.ts";
 import TotalsComponent from "../TotalsComponent.tsx";
+import DisplayBestWatts from "./DisplayBestWatts.tsx";
 
 interface ErgDataIF {
   label: string;
@@ -62,6 +63,9 @@ export const ErgData: React.FC<ErgDataIF> = ({
                 </li>
                 <li>
                   <DisplayBestWorkTime data={data.bestWorkTime} />
+                </li>
+                <li>
+                  <DisplayBestWatts data={data.bestWattsAvg} />
                 </li>
               </ul>
             </>
