@@ -98,7 +98,8 @@ export interface GeneralStatDataIF {
 
 export interface TrendDataIF {
   month: string;
-  value: number;
-  ergType: ErgType;
+  rowErg?: number;
+  bikeErg?: number;
+  skiErg?: number;
   stat: "distance";
 }

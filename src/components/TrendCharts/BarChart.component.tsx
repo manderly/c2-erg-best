@@ -1,20 +1,11 @@
 import { Flex } from "@mantine/core";
-import {
-  BarChart,
-  Bar,
-  Rectangle,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { TrendTooltip } from "./TrendTooltip.component.tsx";
 import { TrendDataIF } from "../../types/types.ts";
 
 interface BarChartComponentIF {
   title: string;
   data: TrendDataIF[];
-  dataKey: string;
   hexFill: string;
   tickFormatter: (item: number | string | undefined) => string;
 }
@@ -22,14 +13,11 @@ interface BarChartComponentIF {
 export const BarChartComponent: React.FC<BarChartComponentIF> = ({
   title,
   data,
-  dataKey,
-  hexFill,
   tickFormatter,
 }) => {
   const firstLetter = (monthName: string) => {
     return monthName[0];
   };
-  const ergType = "rowErg";
 
   return (
     <>
@@ -43,26 +31,23 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
         wrap="wrap"
       >
         <BarChart
-          width={650}
-          height={500}
+          width={750}
+          height={600}
           data={data}
           margin={{
             top: 5,
             right: 5,
-            left: 5,
-            bottom: 0,
+            left: 30,
+            bottom: 1,
           }}
         >
           <XAxis dataKey="month" tickFormatter={firstLetter} />
-          <YAxis dataKey={dataKey} tickFormatter={tickFormatter} />
+          <YAxis dataKey="" tickFormatter={tickFormatter} />
           <Tooltip content={<TrendTooltip />} />
           <Legend layout="horizontal" verticalAlign="bottom" align="left" />
-          <Bar
-            dataKey={dataKey}
-            name={`${ergType} meters`}
-            fill={hexFill}
-            activeBar={<Rectangle fill="#7f99b2" stroke="#ffffff" />}
-          />
+          <Bar dataKey="rowErg" name="RowErg" stackId="a" fill="#afbd22" />
+          <Bar dataKey="bikeErg" name="BikeErg" stackId="a" fill="#9dc7f5" />
+          <Bar dataKey="skiErg" name="SkiErg" stackId="a" fill="#ffffff" />
         </BarChart>
       </Flex>
     </>

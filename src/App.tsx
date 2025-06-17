@@ -54,6 +54,7 @@ import YearOrSeasonStats from "./components/GeneralStatsForYear/YearOrSeasonStat
 const localCSVFiles = [
   "/concept2-season-2024.csv",
   "/concept2-season-2025.csv",
+  "/concept2-season-2026.csv",
 ];
 
 const DEFAULT_RECORD_DATA: MonthSummaryForErgIF = {
@@ -401,6 +402,9 @@ function App() {
     dispatch(setIsDoneLoadingCSVData(true));
   };
 
+  {
+    /* todo: toggle between calendar and erg season views */
+  }
   const AdjustViewSettings = () => (
     <div>
       <Radio.Group
@@ -414,16 +418,16 @@ function App() {
         <Stack>
           {/* Calendar year radio + select */}
           <Radio.Card className={"radio-card"} value={"calendarYear"}>
-            <Group wrap={"nowrap"}>
+            <Group wrap={"nowrap"} className={"flex-column space-between"}>
               <Radio.Indicator />
-              <div>
+              <div className={"radio-text"}>
                 <Text className="radio-title">Calendar year (Jan-Dec)</Text>
                 <Text className="radio-description">
                   Requires at least 2 .csv files
                 </Text>
               </div>
 
-              <div className={"radio-column-select"}>
+              <div>
                 {years && (
                   <div>
                     <Select
@@ -444,12 +448,27 @@ function App() {
             disabled={true}
             className={"radio-card"}
           >
-            <Group wrap={"nowrap"}>
+            <Group wrap={"nowrap"} className={"flex-column space-between"}>
               <Radio.Indicator />
-              <div>
-                <Text className="radio-title">
-                  Concept2 season (May-April) [COMING SOON]
+              <div className={"radio-text"}>
+                <Text className="radio-title">Concept2 season</Text>
+                <Text className="radio-description">
+                  Beginning in May of [choose year]
                 </Text>
+                <Text className="radio-description">(coming soon)</Text>
+              </div>
+
+              <div>
+                {years && (
+                  <div>
+                    <Select
+                      value={ergDataState.viewingYear}
+                      disabled={true}
+                      data={years.map((year) => String(year))}
+                      onChange={(year) => handleSelectYear(year)}
+                    ></Select>
+                  </div>
+                )}
               </div>
             </Group>
           </Radio.Card>
