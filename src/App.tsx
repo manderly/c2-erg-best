@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import "./App.css";
 import "@mantine/core/styles.css";
 import {
@@ -7,6 +7,7 @@ import {
   MantineProvider,
   Select,
   Container,
+  Divider,
 } from "@mantine/core";
 import { Grid, Button, Flex } from "@mantine/core";
 
@@ -108,6 +109,11 @@ function App() {
     allTimeSums: {} as AllTimeSumsDataIF,
     years: [],
   });
+
+  /* On page load, load my test data (for demo purposes) */
+  useEffect(() => {
+    loadTestData();
+  }, []);
 
   const removeSelectedFilename = (filename: string) => {
     if (files) {
@@ -502,11 +508,12 @@ function App() {
               <ErgProportions workDistanceSums={workDistanceSums} />
             </Grid.Col>
           </Grid>
+          <Divider />
 
           <Grid>
-            <Grid.Col span={{ base: 12 }}>
+            <Grid.Col span={{ base: 1.5 }}>
               {years && (
-                <div>
+                <div className={"pad-top-subtle"}>
                   <Select
                     value={ergDataState.viewingYear}
                     disabled={false}
@@ -516,6 +523,7 @@ function App() {
                 </div>
               )}
             </Grid.Col>
+            <Grid.Col span={{ base: 10.5 }}></Grid.Col>
           </Grid>
 
           <Grid>
