@@ -3,13 +3,9 @@ import "./App.css";
 import "@mantine/core/styles.css";
 import {
   CloseButton,
-  Text,
   FileInput,
-  Group,
   MantineProvider,
-  Radio,
   Select,
-  Stack,
   Container,
 } from "@mantine/core";
 import { Grid, Button, Flex } from "@mantine/core";
@@ -32,7 +28,6 @@ import {
   ErgDataByYear,
   WorkDistanceSumsIF,
   SessionDataIF,
-  ViewMode,
   AllTimeSumsDataIF,
   csvRow,
   ErgDataIF,
@@ -103,8 +98,6 @@ function App() {
 
   const [files, setFiles] = useState<File[] | null>(null);
   const [years, setYears] = useState<string[]>([]);
-  const [calendarViewMode, setCalendarViewMode] =
-    useState<ViewMode>("calendarYear");
 
   const [unfilteredRowData, setUnfilteredRowData] = useState<
     ParsedCSVRowDataIF[]
@@ -194,10 +187,6 @@ function App() {
     if (files) {
       parseCSVFiles(files);
     }
-  };
-
-  const handleToggleCalendarViewMode = (mode: ViewMode) => {
-    setCalendarViewMode(mode);
   };
 
   const handleSelectYear = (year: string | null) => {
@@ -418,81 +407,6 @@ function App() {
     dispatch(setIsDoneLoadingCSVData(true));
   };
 
-  {
-    /* todo: toggle between calendar and erg season views */
-  }
-  const AdjustViewSettings = () => (
-    <div>
-      <Radio.Group
-        label="View options"
-        onChange={(value: string) =>
-          handleToggleCalendarViewMode(value as ViewMode)
-        }
-        description={"View data by calendar year or Concept2 season"}
-        value={calendarViewMode}
-      >
-        <Stack>
-          {/* Calendar year radio + select */}
-          <Radio.Card className={"radio-card"} value={"calendarYear"}>
-            <Group wrap={"nowrap"} className={"flex-column space-between"}>
-              <Radio.Indicator />
-              <div className={"radio-text"}>
-                <Text className="radio-title">Calendar year (Jan-Dec)</Text>
-                <Text className="radio-description">
-                  Requires at least 2 .csv files
-                </Text>
-              </div>
-
-              <div>
-                {years && (
-                  <div>
-                    <Select
-                      value={ergDataState.viewingYear}
-                      disabled={calendarViewMode != "calendarYear"}
-                      data={years.map((year) => String(year))}
-                      onChange={(year) => handleSelectYear(year)}
-                    ></Select>
-                  </div>
-                )}
-              </div>
-            </Group>
-          </Radio.Card>
-
-          {/* Concept2 season radio */}
-          <Radio.Card
-            value={"concept2Season"}
-            disabled={true}
-            className={"radio-card"}
-          >
-            <Group wrap={"nowrap"} className={"flex-column space-between"}>
-              <Radio.Indicator />
-              <div className={"radio-text"}>
-                <Text className="radio-title">Concept2 season</Text>
-                <Text className="radio-description">
-                  Beginning in May of [choose year]
-                </Text>
-                <Text className="radio-description">(coming soon)</Text>
-              </div>
-
-              <div>
-                {years && (
-                  <div>
-                    <Select
-                      value={ergDataState.viewingYear}
-                      disabled={true}
-                      data={years.map((year) => String(year))}
-                      onChange={(year) => handleSelectYear(year)}
-                    ></Select>
-                  </div>
-                )}
-              </div>
-            </Group>
-          </Radio.Card>
-        </Stack>
-      </Radio.Group>
-    </div>
-  );
-
   const UploadFile = () => (
     <form onSubmit={handleFormSubmit}>
       <Flex
@@ -595,7 +509,7 @@ function App() {
                 <div>
                   <Select
                     value={ergDataState.viewingYear}
-                    disabled={calendarViewMode != "calendarYear"}
+                    disabled={false}
                     data={years.map((year) => String(year))}
                     onChange={(year) => handleSelectYear(year)}
                   ></Select>
