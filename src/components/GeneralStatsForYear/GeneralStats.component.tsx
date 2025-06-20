@@ -7,52 +7,133 @@ import {
 } from "../../services/formatting_utils.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store.ts";
-import { GeneralStatDataIF } from "../../types/types.ts";
+import { ErgDataIF, YoYMetersDataIF } from "../../types/types.ts";
 import { RIDICULOUS_FUTURE_TIMESTAMP } from "../../consts/consts.ts";
+import { Grid } from "@mantine/core";
+import { YoYBarChartComponent } from "../TrendCharts/YoYBarChart.component.tsx";
 
 interface GeneralStatsIF {
-  fileCount: number;
   sessionsCount: number;
-  data: GeneralStatDataIF;
+  ergData: ErgDataIF;
 }
 
-const GeneralStats: React.FC<GeneralStatsIF> = ({
-  fileCount,
-  sessionsCount,
-  data,
-}) => {
+const GeneralStats: React.FC<GeneralStatsIF> = ({ sessionsCount, ergData }) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
-
   let dateRange = " -- ";
-  if (data.earliestDate < RIDICULOUS_FUTURE_TIMESTAMP) {
-    dateRange = `${getFormattedEpochDate(data.earliestDate)} - ${getFormattedEpochDate(data.latestDate)}`;
+  if (ergData.allTimeSums.earliestDate < RIDICULOUS_FUTURE_TIMESTAMP) {
+    dateRange = `${getFormattedEpochDate(ergData.allTimeSums.earliestDate)} - ${getFormattedEpochDate(ergData.allTimeSums.latestDate)}`;
   }
 
-  return (
-    <div className="flex-row">
-      <div
-        className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""} flex-column`}
-      >
-        <h2>
-          Your Erg Data Summary (all files)
-          {`${ergDataState.isDoneLoadingCSVData ? "🏅" : ""}`}
-        </h2>
-        <ErgDataSummary label={"Files uploaded"} value={fileCount} />
-        <ErgDataSummary label={"Date range"} value={dateRange} />
-        <ErgDataSummary
-          label={"Total meters"}
-          value={getFormattedDistanceString(data.totalMeters, false)}
-        />
-        <ErgDataSummary
-          label={"Sessions"}
-          value={sessionsCount > 0 ? sessionsCount : " -- "}
-        />
-        <ErgDataSummary
-          label={"Time spent Ergin'"}
-          value={getFormattedDuration(data.totalErgTime, true)}
-        />
+  const yoyMeterData = ergData.years.map((year) => {
+    return {
+      year: year,
+      meters: Object.values(ergData.ergDataByYear[year]).reduce(
+        (sum: number, month) => {
+          return sum + month.metersAll;
+        },
+        0,
+      ),
+    } as YoYMetersDataIF;
+  });
+
+  const ErgSpecificMeters = ({
+    meters,
+    colorClass,
+    text,
+  }: {
+    meters: number;
+    colorClass: string;
+    text: string;
+  }) => {
+    return (
+      <div className={"flex-row flex-space-between"}>
+        <div className={`erg-specific-meters-container ${colorClass}`}>
+          {getFormattedDistanceString(meters, false)}{" "}
+        </div>
+        <div className={`${colorClass}`}>{text}</div>
       </div>
-    </div>
+    );
+  };
+
+  return (
+    <Grid>
+      <Grid.Col span={{ base: 12, sm: 4 }}>
+        <div
+          className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""} flex-row`}
+        >
+          <div className={`flex-column`}>
+            <h2>
+              Lifetime Erg Data
+              {`${ergDataState.isDoneLoadingCSVData ? "🏅" : ""}`}{" "}
+            </h2>
+
+            <div>
+              <ErgDataSummary label={"Date range"} value={dateRange} />
+              <ErgDataSummary
+                label={"Total meters"}
+                value={getFormattedDistanceString(
+                  ergData.allTimeSums.totalMeters,
+                  false,
+                )}
+              />
+              <div className={"pad-bottom"}>
+                {ergDataState.hasRowErg && (
+                  <ErgSpecificMeters
+                    meters={ergData.allTimeSums.totalRowErgMeters}
+                    colorClass={"rowErg-color"}
+                    text={"RowErg"}
+                  />
+                )}
+
+                {ergDataState.hasBikeErg && (
+                  <ErgSpecificMeters
+                    meters={ergData.allTimeSums.totalBikeErgMeters}
+                    colorClass={"bikeErg-color"}
+                    text={"BikeErg"}
+                  />
+                )}
+
+                {ergDataState.hasSkiErg && (
+                  <ErgSpecificMeters
+                    meters={ergData.allTimeSums.totalSkiErgMeters}
+                    colorClass={"skiErg-color"}
+                    text={"SkiErg"}
+                  />
+                )}
+              </div>
+              <ErgDataSummary
+                label={"Sessions"}
+                value={sessionsCount > 0 ? sessionsCount : " -- "}
+              />
+              <ErgDataSummary
+                label={"Time spent Ergin'"}
+                value={getFormattedDuration(
+                  ergData.allTimeSums.totalErgTime,
+                  true,
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      </Grid.Col>
+
+      {/*<Grid.Col span={{ base: 12, sm: 4 }}>*/}
+      {/*  Machine-specific stats here*/}
+      {/*</Grid.Col>*/}
+
+      <Grid.Col span={{ base: 12, sm: 6 }}>
+        <div
+          className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""}`}
+        >
+          <YoYBarChartComponent
+            title={"Your Erg Meters, by Year"}
+            hexFill={""}
+            data={yoyMeterData}
+            tickFormatter={getFormattedDistanceString}
+          />
+        </div>
+      </Grid.Col>
+    </Grid>
   );
 };
 

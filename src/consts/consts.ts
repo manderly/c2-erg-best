@@ -1,6 +1,7 @@
 export const ROW_ERG_COLOR = "#afbd22";
 export const BIKE_ERG_COLOR = "#9dc7f5";
 export const SKI_ERG_COLOR = "#ffffff";
+export const CHART_TICK_COLOR = "#fefefe";
 
 export const englishMonths = [
   "January",

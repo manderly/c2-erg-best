@@ -39,12 +39,33 @@ export interface MonthDataIF {
   rowErgSessionsByDayOfMonth: SessionDataIF[][] | [];
   bikeErgSessionsByDayOfMonth: SessionDataIF[][] | [];
   skiErgSessionsByDayOfMonth: SessionDataIF[][] | [];
+  metersAll: number;
 }
 
 export type ErgDataByYear = {
   [year: string]: {
     [month: string]: MonthDataIF;
   };
+};
+
+export interface AllTimeSumsDataIF {
+  totalMeters: number;
+  totalErgTime: number;
+  earliestDate: number;
+  latestDate: number;
+  totalRowErgMeters: number;
+  totalBikeErgMeters: number;
+  totalSkiErgMeters: number;
+}
+
+/* Primary object for user's parsed erg data
+- Organized by year (2024, 2025...)
+- Also holds aggregated "all time" data that was calculated during initial parsing
+*/
+export type ErgDataIF = {
+  ergDataByYear: ErgDataByYear;
+  allTimeSums: AllTimeSumsDataIF;
+  years: string[];
 };
 
 export type WorkoutDataType = {
@@ -88,18 +109,15 @@ export interface WorkDistanceSumsIF {
   skiErg: number;
 }
 
-export interface GeneralStatDataIF {
-  totalMeters: number;
-  totalErgTime: number;
-  earliestDate: number;
-  latestDate: number;
-  years: string[];
-}
-
 export interface TrendDataIF {
   month: string;
   rowErg?: number;
   bikeErg?: number;
   skiErg?: number;
   stat: "distance";
+}
+
+export interface YoYMetersDataIF {
+  year: string;
+  meters: number;
 }

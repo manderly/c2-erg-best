@@ -1,5 +1,5 @@
 import React from "react";
-import { Text } from "@mantine/core";
+import { Divider } from "@mantine/core";
 
 interface ErgDataSummaryIF {
   label: string;
@@ -8,10 +8,11 @@ interface ErgDataSummaryIF {
 
 const ErgDataSummary: React.FC<ErgDataSummaryIF> = ({ label, value }) => {
   return (
-    <Text className={"general-stat-line"}>
-      <strong>{label}: </strong>
-      {value}
-    </Text>
+    <>
+      <h5>{label}</h5>
+      <Divider />
+      <div className={`stat-value pad-bottom-subtle`}>{value}</div>
+    </>
   );
 };
 

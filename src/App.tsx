@@ -33,8 +33,9 @@ import {
   WorkDistanceSumsIF,
   SessionDataIF,
   ViewMode,
-  GeneralStatDataIF,
+  AllTimeSumsDataIF,
   csvRow,
+  ErgDataIF,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
 import { useDispatch, useSelector } from "react-redux";
@@ -108,12 +109,10 @@ function App() {
   const [unfilteredRowData, setUnfilteredRowData] = useState<
     ParsedCSVRowDataIF[]
   >([]);
-  const [ergDataByYear, setErgDataByYear] = useState<ErgDataByYear>({});
-  const [generalStatData, setGeneralStatData] = useState<GeneralStatDataIF>({
-    totalMeters: 0,
-    totalErgTime: 0,
-    earliestDate: RIDICULOUS_FUTURE_TIMESTAMP,
-    latestDate: -1,
+
+  const [ergData, setErgData] = useState<ErgDataIF>({
+    ergDataByYear: {} as ErgDataByYear,
+    allTimeSums: {} as AllTimeSumsDataIF,
     years: [],
   });
 
@@ -217,6 +216,9 @@ function App() {
   let localErgTimeSum = 0;
   let localEarliestDate = RIDICULOUS_FUTURE_TIMESTAMP;
   let localLatestDate = 0;
+  let localRowMetersSum = 0;
+  let localBikeMetersSum = 0;
+  let localSkiMetersSum = 0;
 
   const buildEmptyMonth = (localMonth: string, localYear: string) => {
     return {
@@ -230,6 +232,7 @@ function App() {
         (): SessionDataIF[] => [],
       ),
       skiErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
+      metersAll: 0,
     };
   };
 
@@ -349,6 +352,7 @@ function App() {
                   month[ergType].restDistanceSum += parsedCSVRow.restDistance;
                   month[ergType].workTimeSum += parsedCSVRow.workTime;
                   month[ergType].restTimeSum += parsedCSVRow.restTime;
+                  month.metersAll += parsedCSVRow.workDistance;
                   workDistanceSums[ergType] += parsedCSVRow.workDistance;
 
                   if (ergType === "rowErg") {
@@ -358,6 +362,8 @@ function App() {
                     month.rowErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
+                    localRowMetersSum +=
+                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
                   } else if (ergType === "bikeErg") {
                     dispatch(setHasBikeErg());
 
@@ -366,6 +372,8 @@ function App() {
                     month.bikeErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
+                    localBikeMetersSum +=
+                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
                   } else if (ergType === "skiErg") {
                     dispatch(setHasSkiErg());
                     month["skiErg"].sessionCount += 1;
@@ -375,6 +383,8 @@ function App() {
                     month.skiErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
+                    localSkiMetersSum +=
+                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
                   } else {
                     console.log("Unsupported erg type found: " + ergType);
                   }
@@ -384,14 +394,20 @@ function App() {
                 })
                 .value();
 
-              setErgDataByYear(localErgDataByYear);
-              setGeneralStatData({
-                totalMeters: localMetersSum,
-                totalErgTime: localErgTimeSum,
-                earliestDate: localEarliestDate,
-                latestDate: localLatestDate,
+              const tempErgData = {
+                ergDataByYear: localErgDataByYear,
+                allTimeSums: {
+                  totalMeters: localMetersSum,
+                  totalErgTime: localErgTimeSum,
+                  earliestDate: localEarliestDate,
+                  latestDate: localLatestDate,
+                  totalRowErgMeters: localRowMetersSum,
+                  totalBikeErgMeters: localBikeMetersSum,
+                  totalSkiErgMeters: localSkiMetersSum,
+                },
                 years: localYears,
-              });
+              };
+              setErgData(tempErgData);
               setYears(localYears);
               setUnfilteredRowData(combinedUnfilteredRowData);
             },
@@ -528,57 +544,69 @@ function App() {
       <h2
         className={`${ergDataState.isDoneLoadingCSVData ? "" : "unloaded-text"}`}
       >
-        Your Erg Trends {ergDataState.viewingYear}
+        Your Erg Meters for {ergDataState.viewingYear}
       </h2>
       <div>
-        <TrendsComponent data={ergDataByYear} />
+        <TrendsComponent data={ergData.ergDataByYear} />
       </div>
     </div>
   );
 
   return (
     <MantineProvider defaultColorScheme="dark">
+      <Container className={"title-container"} fluid={true}>
+        <Grid>
+          <Grid.Col span={{ base: 12, sm: 12 }}>
+            <h2 className={"app-title"}>C2 Erg Bests</h2>
+          </Grid.Col>
+        </Grid>
+        <Grid>
+          <Grid.Col span={{ base: 4 }}>
+            <div className={"dashed-border"}>
+              <UploadFile />
+            </div>
+          </Grid.Col>
+          <Grid.Col span={{ base: 8 }}></Grid.Col>
+        </Grid>
+      </Container>
+
       <Container className={"everything-except-footer"} fluid={true}>
-        <div>
-          {/* App title */}
-          <Grid>
-            <Grid.Col span={12}>
-              <h2 className={"app-title"}>C2 Erg Bests</h2>
-            </Grid.Col>
-          </Grid>
-
-          {/* Upload, View Options side-by-side */}
-          <Grid>
-            <Grid.Col span={{ base: 12, sm: 5 }}>
-              <div className={"dashed-border"}>
-                <UploadFile />
-              </div>
-            </Grid.Col>
-
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <AdjustViewSettings />
-            </Grid.Col>
-          </Grid>
-
+        <div className={"pad-top-subtle"}>
           {/* General Stats */}
           <Grid>
-            <Grid.Col span={{ base: 12, sm: 5 }}>
+            <Grid.Col span={{ base: 12 }}>
               <GeneralStats
-                fileCount={files?.length ?? 0}
                 sessionsCount={unfilteredRowData.length}
-                data={generalStatData}
+                ergData={ergData}
               />
             </Grid.Col>
           </Grid>
 
           {/* Proportions bar */}
-          <div className={"proportions-bar-container"}>
-            <ErgProportions workDistanceSums={workDistanceSums} />
-          </div>
+          <Grid>
+            <Grid.Col span={{ base: 12 }}>
+              <ErgProportions workDistanceSums={workDistanceSums} />
+            </Grid.Col>
+          </Grid>
+
+          <Grid>
+            <Grid.Col span={{ base: 12 }}>
+              {years && (
+                <div>
+                  <Select
+                    value={ergDataState.viewingYear}
+                    disabled={calendarViewMode != "calendarYear"}
+                    data={years.map((year) => String(year))}
+                    onChange={(year) => handleSelectYear(year)}
+                  ></Select>
+                </div>
+              )}
+            </Grid.Col>
+          </Grid>
 
           <Grid>
             <Grid.Col span={{ base: 12, sm: 5 }}>
-              <YearOrSeasonStats data={ergDataByYear} />
+              <YearOrSeasonStats data={ergData.ergDataByYear} />
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 7 }}>
               <GeneralTrends />
@@ -588,7 +616,7 @@ function App() {
           {/* Month cards */}
           <Grid grow>
             <Grid.Col span={12}>
-              <MonthCards data={ergDataByYear} />
+              <MonthCards data={ergData.ergDataByYear} />
             </Grid.Col>
           </Grid>
 

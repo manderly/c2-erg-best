@@ -57,7 +57,7 @@ export const TrendsComponent: React.FC<TrendsComponentIF> = ({ data }) => {
     <Grid>
       <Grid.Col span={12}>
         <BarChartComponent
-          title={"Distance"}
+          title={""}
           data={aggregatedDistanceData!}
           hexFill={getColorForErgType("rowErg")}
           tickFormatter={getFormattedDistanceString}

@@ -2,6 +2,7 @@ import { Flex } from "@mantine/core";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { TrendTooltip } from "./TrendTooltip.component.tsx";
 import { TrendDataIF } from "../../types/types.ts";
+import { CHART_TICK_COLOR } from "../../consts/consts.ts";
 
 interface BarChartComponentIF {
   title: string;
@@ -35,14 +36,24 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
           height={600}
           data={data}
           margin={{
-            top: 5,
+            top: 50,
             right: 5,
             left: 30,
             bottom: 1,
           }}
         >
-          <XAxis dataKey="month" tickFormatter={firstLetter} />
-          <YAxis dataKey="" tickFormatter={tickFormatter} />
+          <XAxis
+            dataKey="month"
+            tickFormatter={firstLetter}
+            tick={{ fill: CHART_TICK_COLOR }}
+            tickLine={{ stroke: CHART_TICK_COLOR }}
+          />
+          <YAxis
+            dataKey=""
+            tickFormatter={tickFormatter}
+            tick={{ fill: CHART_TICK_COLOR }}
+            tickLine={{ stroke: CHART_TICK_COLOR }}
+          />
           <Tooltip content={<TrendTooltip />} />
           <Legend layout="horizontal" verticalAlign="bottom" align="left" />
           <Bar dataKey="rowErg" name="RowErg" stackId="a" fill="#afbd22" />

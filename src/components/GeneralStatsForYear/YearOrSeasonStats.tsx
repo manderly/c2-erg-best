@@ -10,6 +10,7 @@ import { RootState } from "../../store/store.ts";
 import { ErgDataByYear, ErgType } from "../../types/types.ts";
 import { englishMonths } from "../../consts/consts.ts";
 import _ from "lodash";
+import { Grid } from "@mantine/core";
 
 interface YearOrSeasonStatsIF {
   data: ErgDataByYear;
@@ -28,16 +29,27 @@ const ErgSummary: React.FC<ErgSummaryProps> = ({ type, data }) => {
       <strong className={`erg-type-label ${type}-label`}>
         {getFormattedErgName(type)}
       </strong>
-      <div className={"pad-top"}>
-        <ErgDataSummary
-          label={"Meters"}
-          value={getFormattedDistanceString(data.meters)}
-        />
-        <ErgDataSummary label={"Sessions"} value={data.sessions} />
-        <ErgDataSummary
-          label={"Time"}
-          value={getFormattedDuration(data.time)}
-        />
+      <div className={"mt-10"}>
+        <Grid>
+          <Grid.Col span={6}>
+            <ErgDataSummary
+              label={"Meters"}
+              value={getFormattedDistanceString(data.meters)}
+            />
+          </Grid.Col>
+          <Grid.Col span={6}>
+            <ErgDataSummary
+              label={"Time"}
+              value={getFormattedDuration(data.time)}
+            />
+          </Grid.Col>
+        </Grid>
+
+        <Grid>
+          <Grid.Col span={6}>
+            <ErgDataSummary label={"Sessions"} value={data.sessions} />
+          </Grid.Col>
+        </Grid>
       </div>
     </div>
   );
