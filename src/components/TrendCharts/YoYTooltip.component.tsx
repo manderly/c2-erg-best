@@ -5,7 +5,9 @@ import React from "react";
 interface PayloadItem {
   payload: {
     year: string;
-    meters: number;
+    rowErgMeters: number;
+    bikeErgMeters: number;
+    skiErgMeters: number;
   };
 }
 
@@ -21,13 +23,18 @@ export const YoYTooltip: React.FC<YoYTooltipProps> = ({
   label,
 }) => {
   if (active && payload && payload.length) {
+    const sumMeters =
+      payload[0].payload?.rowErgMeters +
+      payload[0].payload?.bikeErgMeters +
+      payload[0].payload?.skiErgMeters;
+
     return (
       <div className="trend-tooltip">
         <div className="label">{label && englishMonths[label - 1]}</div>
         <div>
           <div>
-            You erg'd {getFormattedDistanceString(payload[0].payload?.meters)}{" "}
-            in {payload[0].payload?.year}
+            You erg'd {getFormattedDistanceString(sumMeters)} in{" "}
+            {payload[0].payload?.year}
           </div>
           <div>Good job!</div>
         </div>

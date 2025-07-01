@@ -1,5 +1,6 @@
+import React from "react";
 import { Flex } from "@mantine/core";
-import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { YoYMetersDataIF } from "../../types/types.ts";
 import { YoYTooltip } from "./YoYTooltip.component.tsx";
 import { CHART_TICK_COLOR } from "../../consts/consts.ts";
@@ -38,8 +39,9 @@ export const YoYBarChartComponent: React.FC<YoYBarChartComponentIF> = ({
             bottom: 1,
           }}
         >
+          <CartesianGrid strokeDasharray="1 3" vertical={false} />
           <YAxis
-            dataKey="meters"
+            dataKey=""
             tickFormatter={tickFormatter}
             tick={{ fill: CHART_TICK_COLOR }}
             tickLine={{ stroke: CHART_TICK_COLOR }}
@@ -50,7 +52,24 @@ export const YoYBarChartComponent: React.FC<YoYBarChartComponentIF> = ({
             tickLine={{ stroke: CHART_TICK_COLOR }}
           />
           <Tooltip content={<YoYTooltip />} />
-          <Bar dataKey="meters" name="meters" stackId="a" fill="#afbd22" />
+          <Bar
+            dataKey="rowErgMeters"
+            name="RowErg"
+            stackId="a"
+            fill="#afbd22"
+          />
+          <Bar
+            dataKey="bikeErgMeters"
+            name="BikeErg"
+            stackId="a"
+            fill="#9dc7f5"
+          />
+          <Bar
+            dataKey="skiErgMeters"
+            name="SkiErg"
+            stackId="a"
+            fill="#ffffff"
+          />
         </BarChart>
       </Flex>
     </>

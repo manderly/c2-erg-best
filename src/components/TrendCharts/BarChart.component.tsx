@@ -1,8 +1,17 @@
 import { Flex } from "@mantine/core";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+} from "recharts";
 import { TrendTooltip } from "./TrendTooltip.component.tsx";
 import { TrendDataIF } from "../../types/types.ts";
 import { CHART_TICK_COLOR } from "../../consts/consts.ts";
+import React from "react";
 
 interface BarChartComponentIF {
   title: string;
@@ -42,6 +51,7 @@ export const BarChartComponent: React.FC<BarChartComponentIF> = ({
             bottom: 1,
           }}
         >
+          <CartesianGrid strokeDasharray="1 3" vertical={false} />
           <XAxis
             dataKey="month"
             tickFormatter={firstLetter}

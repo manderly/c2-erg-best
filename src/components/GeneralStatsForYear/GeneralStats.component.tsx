@@ -25,14 +25,30 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({ sessionsCount, ergData }) => {
   }
 
   const yoyMeterData = ergData.years.map((year) => {
+    const months = Object.values(ergData.ergDataByYear[year]);
+
+    const sumMeters = (
+      extract: (month: (typeof months)[number]) => number,
+    ): number => months.reduce((sum, month) => sum + extract(month), 0);
+
     return {
-      year: year,
-      meters: Object.values(ergData.ergDataByYear[year]).reduce(
-        (sum: number, month) => {
-          return sum + month.metersAll;
-        },
-        0,
+      year,
+      rowErgMeters: sumMeters(
+        (month) =>
+          (month.rowErg?.workDistanceSum ?? 0) +
+          (month.rowErg?.restDistanceSum ?? 0),
       ),
+      bikeErgMeters: sumMeters(
+        (month) =>
+          (month.bikeErg?.workDistanceSum ?? 0) +
+          (month.bikeErg?.restDistanceSum ?? 0),
+      ),
+      skiErgMeters: sumMeters(
+        (month) =>
+          (month.skiErg?.workDistanceSum ?? 0) +
+          (month.skiErg?.restDistanceSum ?? 0),
+      ),
+      allMeters: sumMeters((month) => month.metersAll ?? 0),
     } as YoYMetersDataIF;
   });
 

@@ -119,5 +119,8 @@ export interface TrendDataIF {
 
 export interface YoYMetersDataIF {
   year: string;
-  meters: number;
+  allMeters: number;
+  rowErgMeters: number;
+  bikeErgMeters: number;
+  skiErgMeters: number;
 }
