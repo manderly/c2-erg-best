@@ -232,6 +232,7 @@ function App() {
   };
 
   const parseCSVFiles = (files: (File | null)[]) => {
+    let mostRecentYear = 0;
     const localYears: string[] = [];
     if (files) {
       files.forEach((file) => {
@@ -262,7 +263,11 @@ function App() {
                   if (!localYears.includes(localYear)) {
                     localYears.push(localYear);
                   }
-
+                  // default to the current-most year in the data
+                  if (Number(localYear) > mostRecentYear) {
+                    mostRecentYear = Number(localYear);
+                    dispatch(setViewingYear(localYear));
+                  }
                   // add these meters to the sum
                   localMetersSum +=
                     parsedCSVRow.workDistance + parsedCSVRow.restDistance;
