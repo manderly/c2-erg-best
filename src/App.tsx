@@ -362,8 +362,7 @@ function App() {
                     month.rowErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
-                    localRowMetersSum +=
-                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
+                    localRowMetersSum += parsedCSVRow.workDistance; // + parsedCSVRow.restDistance;
                   } else if (ergType === "bikeErg") {
                     dispatch(setHasBikeErg());
 
@@ -372,8 +371,7 @@ function App() {
                     month.bikeErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
-                    localBikeMetersSum +=
-                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
+                    localBikeMetersSum += parsedCSVRow.workDistance; // + parsedCSVRow.restDistance;
                   } else if (ergType === "skiErg") {
                     dispatch(setHasSkiErg());
 
@@ -382,8 +380,7 @@ function App() {
                     month.skiErgSessionsByDayOfMonth[parsedCSVRow.day].push(
                       newSession,
                     );
-                    localSkiMetersSum +=
-                      parsedCSVRow.workDistance + parsedCSVRow.restDistance;
+                    localSkiMetersSum += parsedCSVRow.workDistance; // + parsedCSVRow.restDistance;
                   } else {
                     console.log("Unsupported erg type found: " + ergType);
                   }
