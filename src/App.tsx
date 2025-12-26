@@ -376,7 +376,6 @@ function App() {
                       parsedCSVRow.workDistance + parsedCSVRow.restDistance;
                   } else if (ergType === "skiErg") {
                     dispatch(setHasSkiErg());
-                    month["skiErg"].sessionCount += 1;
 
                     // push new entry to the correct day of the month array
                     const newSession = getSessionData(parsedCSVRow);
