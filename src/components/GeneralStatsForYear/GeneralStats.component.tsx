@@ -142,7 +142,7 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({ sessionsCount, ergData }) => {
           className={`${!ergDataState.isDoneLoadingCSVData ? "unloaded-text" : ""}`}
         >
           <YoYBarChartComponent
-            title={"Your Erg Meters, by Year"}
+            title={"Your Erg Meters, by Calendar Year"}
             hexFill={""}
             data={yoyMeterData}
             tickFormatter={getFormattedDistanceString}
