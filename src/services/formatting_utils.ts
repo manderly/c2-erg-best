@@ -29,21 +29,21 @@ export const isFutureMonthAndYear = (month: string, year: string) => {
 
 /**
  * This is used to turn seconds (as a number) into a human-readable string.
- * By default, it returns a clock-like formatting:
+ *
+ * By default, it returns a labeled string:
+ * 1d 17h 21m
+ * Use this for monthly/annual sums.
+ *
+ * Pass true to force it to use clock-like formatting.
  * "01:25:30"
- * You read it as: 1 hours, 25 mins, 30 seconds
  * Use this for workout-specific duration data.
  *
- * Alternatively, pass true as the second parameter to get something meant for longer durations:
- * 17 hours, 21 minutes
- * Use this for bigger sums, like how long you spent on the machines this month or year.
- *
  * @param seconds
- * @param bigDuration
+ * @param forceClockFormat
  */
 export const getFormattedDuration = (
   seconds: number,
-  bigDuration = false,
+  forceClockFormat = false,
 ): string => {
   const duration = intervalToDuration({
     start: new Date(0, 0, 0, 0, 0, 0),
@@ -53,11 +53,11 @@ export const getFormattedDuration = (
   const days = duration.days;
   const hr =
     duration.hours && duration.hours < 10
-      ? `0${duration.hours}`
+      ? `${forceClockFormat ? "0" : ""}${duration.hours}`
       : duration.hours;
   const min =
     duration.minutes && duration.minutes < 10
-      ? `0${duration.minutes}`
+      ? `${forceClockFormat ? "0" : ""}${duration.minutes}`
       : duration.minutes;
   const sec =
     duration.seconds && duration.seconds < 10
@@ -68,13 +68,14 @@ export const getFormattedDuration = (
     return "--";
   }
 
-  if (bigDuration) {
-    // Use this for format "12 hours, 37 minutes"
-    const dys = days ? `${days} days,` : "";
-    return `${dys} ${hr ?? "0"} hours, ${min ?? "0"} minutes`;
+  const dys = days && !forceClockFormat ? `${days}d ` : "";
+  // always default to this label style if we detect 'days'
+  if (days || !forceClockFormat) {
+    // use for this format: "1d 12h 37m"
+    return `${dys}${hr ?? "0"}h ${min ?? "0"}m`;
   } else {
-    // use this for format "01:25:00" format
-    return `${hr ?? "00"}:${min ?? "00"}:${sec ?? "00"}`;
+    // no days, or no label compacting: default to "01:25:00" clock format
+    return `${hr ?? "00"}:${min ?? "00"}:${sec ?? "0"}`;
   }
 };
 

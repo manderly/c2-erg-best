@@ -123,10 +123,7 @@ const GeneralStats: React.FC<GeneralStatsIF> = ({ sessionsCount, ergData }) => {
               />
               <ErgDataSummary
                 label={"Time spent Ergin'"}
-                value={getFormattedDuration(
-                  ergData.allTimeSums.totalErgTime,
-                  true,
-                )}
+                value={getFormattedDuration(ergData.allTimeSums.totalErgTime)}
               />
             </div>
           </div>

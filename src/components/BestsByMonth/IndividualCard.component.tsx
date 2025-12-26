@@ -33,11 +33,13 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
       data.skiErg.workDistanceSum,
     false,
   );
-  const combinedWorkTime = getFormattedDuration(
+  /* Philosophical debate: is rest time part of total time?
+   * Sometimes rest means "not even on the machine". Hmm. Leaving it out for now.*/
+  const workTimeSum =
     data.rowErg.workTimeSum +
-      data.bikeErg.workTimeSum +
-      data.skiErg.workTimeSum,
-  );
+    data.bikeErg.workTimeSum +
+    data.skiErg.workTimeSum;
+  const combinedWorkTime = getFormattedDuration(workTimeSum);
 
   const current = isCurrentMonthAndYear(month, String(data.year));
   const future = isFutureMonthAndYear(month, String(data.year));
