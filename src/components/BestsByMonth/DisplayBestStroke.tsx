@@ -16,7 +16,7 @@ const DisplayBestStroke: React.FC<DisplayBestStrokeIF> = ({
   return (
     <div className={"best-data"}>
       <Flex justify="space-between">
-        <strong>Best Stroke</strong>
+        <strong>Best Stroke Avg.</strong>
         <ViewWorkoutLink id={data.workoutId} />
       </Flex>
       <Divider />
