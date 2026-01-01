@@ -1,5 +1,5 @@
 import Papa, { ParseResult } from "papaparse";
-import _ from "lodash";
+import { cloneDeep, chain } from "lodash";
 import {
   getErgTypeFromRow,
   getMonthNumber,
@@ -50,9 +50,9 @@ export const buildEmptyMonth = (localMonth: string, localYear: string) => {
   return {
     name: localMonth,
     year: Number(localYear),
-    rowErg: _.cloneDeep(getDefaultErgData()),
-    bikeErg: _.cloneDeep(getDefaultErgData()),
-    skiErg: _.cloneDeep(getDefaultErgData()),
+    rowErg: cloneDeep(getDefaultErgData()),
+    bikeErg: cloneDeep(getDefaultErgData()),
+    skiErg: cloneDeep(getDefaultErgData()),
     rowErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
     bikeErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
     skiErgSessionsByDayOfMonth: [...Array(32)].map((): SessionDataIF[] => []),
@@ -105,7 +105,7 @@ export const parseCSVFiles = (
         Papa.parse(file, {
           complete: function (results: ParseResult<string[]>) {
             results.data.shift();
-            _.chain(results.data)
+            chain(results.data)
               .filter((row: csvRow) => row.length > 1)
               .orderBy((row: csvRow) => row[1])
               .map((row: csvRow) => {
@@ -136,7 +136,7 @@ export const parseCSVFiles = (
                 if (localErgDataByYear[localYear] === undefined) {
                   localErgDataByYear[localYear] = {};
                   englishMonths.map((month) => {
-                    localErgDataByYear[localYear][month] = _.cloneDeep(
+                    localErgDataByYear[localYear][month] = cloneDeep(
                       buildEmptyMonth(month, localYear),
                     );
                   });
