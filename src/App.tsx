@@ -87,18 +87,18 @@ const DEFAULT_RECORD_DATA: MonthSummaryForErgIF = {
   sessionCount: 0,
 };
 
-const workDistanceSums: WorkDistanceSumsIF = {
-  rowErg: 0,
-  bikeErg: 0,
-  skiErg: 0,
-};
-
 function App() {
   const dispatch = useDispatch();
   const ergDataState = useSelector((state: RootState) => state.ergData);
 
   const [files, setFiles] = useState<File[] | null>(null);
   const [years, setYears] = useState<string[]>([]);
+
+  const [workDistanceSums, setWorkDistanceSums] = useState<WorkDistanceSumsIF>({
+    rowErg: 0,
+    bikeErg: 0,
+    skiErg: 0,
+  });
 
   const [unfilteredRowData, setUnfilteredRowData] = useState<
     ParsedCSVRowDataIF[]
@@ -234,6 +234,12 @@ function App() {
   const parseCSVFiles = (files: (File | null)[]) => {
     let mostRecentYear = 0;
     const localYears: string[] = [];
+    const localWorkDistanceSums = {
+      rowErg: 0,
+      bikeErg: 0,
+      skiErg: 0,
+    };
+
     if (files) {
       files.forEach((file) => {
         if (file) {
@@ -353,7 +359,7 @@ function App() {
                   month[ergType].workTimeSum += parsedCSVRow.workTime;
                   month[ergType].restTimeSum += parsedCSVRow.restTime;
                   month.metersAll += parsedCSVRow.workDistance;
-                  workDistanceSums[ergType] += parsedCSVRow.workDistance;
+                  localWorkDistanceSums[ergType] += parsedCSVRow.workDistance;
 
                   if (ergType === "rowErg") {
                     dispatch(setHasRowErg());
@@ -406,6 +412,7 @@ function App() {
               setErgData(tempErgData);
               setYears(localYears);
               setUnfilteredRowData(combinedUnfilteredRowData);
+              setWorkDistanceSums(localWorkDistanceSums);
             },
           });
         }
