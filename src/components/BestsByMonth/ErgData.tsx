@@ -1,5 +1,4 @@
 import { ErgType, MonthSummaryForErgIF } from "../../types/types.ts";
-import DisplayBestStroke from "./DisplayBestStroke.tsx";
 import DisplayBestDistance from "./DisplayBestDistance.tsx";
 import DisplayBestPace from "./DisplayBestPace.tsx";
 import React from "react";
@@ -17,14 +16,12 @@ interface ErgDataIF {
   data: MonthSummaryForErgIF;
   workoutCount: number;
   distanceUnits?: string;
-  strokeUnits?: string;
 }
 export const ErgData: React.FC<ErgDataIF> = ({
   label,
   data,
   workoutCount,
   distanceUnits = "500",
-  strokeUnits = "per min.",
 }) => {
   const formattedWorkDistance = getFormattedDistanceString(
     data.workDistanceSum,
@@ -57,12 +54,6 @@ export const ErgData: React.FC<ErgDataIF> = ({
                 </li>
                 <li>
                   <DisplayBestDistance data={data.bestDistance} />
-                </li>
-                <li>
-                  <DisplayBestStroke
-                    data={data.bestStroke}
-                    strokeUnits={strokeUnits}
-                  />
                 </li>
                 <li>
                   <DisplayBestWorkTime data={data.bestWorkTime} />

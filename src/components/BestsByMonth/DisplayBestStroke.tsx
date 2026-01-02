@@ -28,4 +28,6 @@ const DisplayBestStroke: React.FC<DisplayBestStrokeIF> = ({
   );
 };
 
+/* Removed from use 1/2/26 - 'best stroke' is
+more complicated than just "whichever one is highest" */
 export default DisplayBestStroke;
