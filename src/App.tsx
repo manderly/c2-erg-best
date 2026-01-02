@@ -30,6 +30,7 @@ import GeneralStats from "./components/GeneralStatsForYear/GeneralStats.componen
 import { RootState } from "./store/store.ts";
 import YearOrSeasonStats from "./components/GeneralStatsForYear/YearOrSeasonStats.tsx";
 import { fetchLocalCSVFile, parseCSVFiles } from "./services/csvService";
+import MonthData from "./components/BestsByMonth/MonthData.tsx";
 
 const localCSVFiles = [
   "/concept2-season-2024.csv",
@@ -59,6 +60,8 @@ function App() {
     allTimeSums: {} as AllTimeSumsDataIF,
     years: [],
   });
+
+  const [selectedMonth, setSelectedMonth] = useState<any>(null);
 
   /* On page load, load my test data (for demo purposes) */
   useEffect(() => {
@@ -264,8 +267,16 @@ function App() {
           </Grid>
           {/* Month cards */}
           <Grid grow>
-            <Grid.Col span={12}>
-              <MonthCards data={ergData.ergDataByYear} />
+            <Grid.Col span={8}>
+              <MonthCards
+                data={ergData.ergDataByYear}
+                onMonthClick={setSelectedMonth}
+              />
+            </Grid.Col>
+            <Grid.Col span={4}>
+              <div>
+                <MonthData monthData={selectedMonth} />
+              </div>
             </Grid.Col>
           </Grid>
           {/** AG-grid table with workout details - removed 12/30, it's not very useful **/}

@@ -227,7 +227,7 @@ h5 {
 .month-cards {
   display: grid;
   gap: .6em;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .month-card {
@@ -263,7 +263,7 @@ h5 {
   border: 1px solid #89cff0;
 }
 
-.month-card ul {
+.erg-data-bg ul {
   list-style: none;
   padding-left: 0;
 }

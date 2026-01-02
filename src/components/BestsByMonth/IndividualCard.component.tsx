@@ -2,51 +2,49 @@ import React from "react";
 import { Card } from "@mantine/core";
 import { MonthDataIF } from "../../types/types.ts";
 import {
-  getFormattedDistanceString,
-  getFormattedDuration,
   isCurrentMonthAndYear,
   isFutureMonthAndYear,
 } from "../../services/formatting_utils.ts";
-import { ErgData } from "./ErgData.tsx";
 import CalendarComponent from "./Calendar.component.tsx";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store.ts";
 import TotalsComponent from "../TotalsComponent.tsx";
 
 interface IndividualCardIF {
   month: string;
   data: MonthDataIF;
+  onClick?: () => void;
 }
 
 const IndividualCardComponent: React.FC<IndividualCardIF> = ({
   month,
   data,
+  onClick,
 }) => {
-  const ergDataState = useSelector((state: RootState) => state.ergData);
-  const combinedCount =
-    data.rowErg?.sessionCount +
-    data.bikeErg?.sessionCount +
-    data.skiErg?.sessionCount;
-  const combinedMeters = getFormattedDistanceString(
-    data.rowErg.workDistanceSum +
-      data.bikeErg.workDistanceSum +
-      data.skiErg.workDistanceSum,
-    false,
-  );
-  /* Philosophical debate: is rest time part of total time?
-   * Sometimes rest means "not even on the machine". Hmm. Leaving it out for now.*/
-  const workTimeSum =
-    data.rowErg.workTimeSum +
-    data.bikeErg.workTimeSum +
-    data.skiErg.workTimeSum;
-  const combinedWorkTime = getFormattedDuration(workTimeSum);
-
   const current = isCurrentMonthAndYear(month, String(data.year));
   const future = isFutureMonthAndYear(month, String(data.year));
+
+  // Month-level totals for the entire month
+  const combinedCount =
+    (data.rowErg?.sessionCount || 0) +
+    (data.bikeErg?.sessionCount || 0) +
+    (data.skiErg?.sessionCount || 0);
+  const combinedMeters = (
+    (data.rowErg?.workDistanceSum || 0) +
+    (data.bikeErg?.workDistanceSum || 0) +
+    (data.skiErg?.workDistanceSum || 0)
+  ).toLocaleString();
+  const workTimeSum =
+    (data.rowErg?.workTimeSum || 0) +
+    (data.bikeErg?.workTimeSum || 0) +
+    (data.skiErg?.workTimeSum || 0);
+  const hours = Math.floor(workTimeSum / 3600);
+  const minutes = Math.floor((workTimeSum % 3600) / 60);
+  const combinedWorkTime = `${hours}h ${minutes}m`;
 
   return (
     <Card
       className={`month-card ${current ? "current-month" : ""} ${future ? "month-card-dim" : ""}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : undefined }}
     >
       <div className={"month-card-title pad-bottom"}>
         <span className={"month-name"}>{data.name}</span>
@@ -61,32 +59,6 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
         meters={combinedMeters}
         workTime={combinedWorkTime}
       />
-      {ergDataState.hasRowErg && (
-        <ErgData
-          label="rowErg"
-          data={data.rowErg}
-          workoutCount={data["rowErg"].sessionCount}
-          distanceUnits="500"
-          strokeUnits="per min"
-        />
-      )}
-      {ergDataState.hasBikeErg && (
-        <ErgData
-          label="bikeErg"
-          data={data.bikeErg}
-          workoutCount={data["bikeErg"].sessionCount}
-          distanceUnits="1,000"
-          strokeUnits="rpm"
-        />
-      )}
-      {ergDataState.hasSkiErg && (
-        <ErgData
-          label="skiErg"
-          data={data.skiErg}
-          workoutCount={data["skiErg"].sessionCount}
-          strokeUnits={"minutes"}
-        />
-      )}
     </Card>
   );
 };

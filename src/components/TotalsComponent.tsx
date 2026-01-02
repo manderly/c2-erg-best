@@ -18,7 +18,7 @@ const TotalsComponent: React.FC<TotalsComponentIF> = ({
   const timeLabel = label ? `${label} time` : "Time";
 
   return (
-    <div className={"pad-top pad-bottom"}>
+    <div className={"pad-top pad-bottom-subtle"}>
       <div className={"totals-label-and-value"}>
         {sessionsLabel}: <div>{sessions}</div>
       </div>

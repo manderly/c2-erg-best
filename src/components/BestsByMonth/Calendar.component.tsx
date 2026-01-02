@@ -160,9 +160,11 @@ const CalendarComponent: React.FC<CalendarIF> = ({ month, data }) => {
   const totalCells = getDate(lastDayOfTheMonth);
   const cellsPerRow = 7;
 
+  const tableCells = generateTableCells(totalCells, cellsPerRow, month, data);
+
   return (
     <table className={"calendar"}>
-      <tbody>{generateTableCells(totalCells, cellsPerRow, month, data)}</tbody>
+      <tbody>{tableCells}</tbody>
     </table>
   );
 };
