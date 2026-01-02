@@ -411,6 +411,25 @@ h5 {
   background-image: linear-gradient(-45deg, var(--rowErg) 50%, var(--bikeErg) 50%);
 }
 
+.row-and-ski-this-day {
+  color: black;
+  background-image: linear-gradient(-45deg, var(--rowErg) 50%, var(--skiErg) 50%);
+}
+
+.bike-and-ski-this-day {
+  color: black;
+  background-image: linear-gradient(-45deg, var(--bikeErg) 50%, var(--skiErg) 50%);
+}
+
+.row-and-bike-and-ski-this-day {
+  color: black;
+  background-image: conic-gradient(
+          var(--rowErg) 0% 33%,
+          var(--bikeErg) 33% 66%,
+          var(--skiErg) 66% 100%
+  );
+}
+
 .day-label {
   font-size: 0.6em;
   color: #7f99b2;

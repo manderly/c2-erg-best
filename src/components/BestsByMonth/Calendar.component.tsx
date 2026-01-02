@@ -96,16 +96,25 @@ const generateTableCells = (
         const bikeThisDay = bikeData.length > 0 ? "bike-this-day" : "";
         const skiThisDay = skiData.length > 0 ? "ski-this-day" : "";
 
-        // todo: add more combos
         const rowAndBikeThisDay =
           rowThisDay && bikeThisDay && !skiThisDay
             ? "row-and-bike-this-day"
             : "";
 
-        // const rowAndSkiThisDay =
-        //   rowThisDay && !bikeThisDay && skiThisDay
-        //     ? "row-and-ski-this-day"
-        //     : "";
+        const rowAndSkiThisDay =
+          rowThisDay && !bikeThisDay && skiThisDay
+            ? "row-and-ski-this-day"
+            : "";
+
+        const bikeAndSkiThisDay =
+          !rowThisDay && bikeThisDay && skiThisDay
+            ? "bike-and-ski-this-day"
+            : "";
+
+        const rowAndBikeAndSkiThisDay =
+          rowThisDay && bikeThisDay && skiThisDay
+            ? "row-and-bike-and-ski-this-day"
+            : "";
 
         row.push(
           <Tooltip
@@ -118,7 +127,11 @@ const generateTableCells = (
                     ${rowThisDay} 
                     ${bikeThisDay} 
                     ${skiThisDay}
-                    ${rowAndBikeThisDay}`}
+                    ${rowAndBikeThisDay}
+                    ${rowAndSkiThisDay}
+                    ${bikeAndSkiThisDay}
+                    ${rowAndBikeAndSkiThisDay}
+                    `}
             >
               {currentDay}
             </td>
