@@ -38,7 +38,7 @@ html, body, #root {
   min-height: max-content;
   height: 100%;
   background-color: #001428;
-  width: 90%;
+  width: 97%;
   padding: 10px;
   border:1px solid var(--softBlue);
   border-radius: 2px;
@@ -541,6 +541,11 @@ h5 {
 .mantine-Select-input {
   color: var(--darkBlue) !important;
   background-color: var(--skiErg) !important;
+}
+
+.selected-month-card {
+  background-color: #25406a !important;
+  border: 1px solid #7f99b2;
 }
 
 @media only screen and (max-width: 1000px) {
