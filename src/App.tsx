@@ -144,6 +144,22 @@ function App() {
   const handleSelectYear = (year: string | null) => {
     if (year) {
       dispatch(setViewingYear(year));
+      // Set selectedMonth to January of the selected year if available
+      if (ergData.ergDataByYear[year] && ergData.ergDataByYear[year]["0"]) {
+        setSelectedMonth(ergData.ergDataByYear[year]["0"]);
+      } else if (ergData.ergDataByYear[year]) {
+        // Fallback: first available month in that year
+        const months = Object.keys(ergData.ergDataByYear[year]).sort(
+          (a, b) => Number(a) - Number(b),
+        );
+        if (months.length > 0) {
+          setSelectedMonth(ergData.ergDataByYear[year][months[0]]);
+        } else {
+          setSelectedMonth(null);
+        }
+      } else {
+        setSelectedMonth(null);
+      }
     }
   };
 
@@ -271,6 +287,7 @@ function App() {
               <MonthCards
                 data={ergData.ergDataByYear}
                 onMonthClick={setSelectedMonth}
+                selectedMonth={selectedMonth}
               />
             </Grid.Col>
             <Grid.Col span={4}>
@@ -282,7 +299,10 @@ function App() {
           {/** AG-grid table with workout details - removed 12/30, it's not very useful **/}
           {/** <WorkoutTableComponent unfilteredRowData={unfilteredRowData} /> **/}
         </div>
-        <div className={"bottom-credits"}>App by Mandi Burley, 2024-2025</div>
+        <div className={"bottom-credits"}>
+          App by <a href={"https://github.com/manderly"}>Mandi Burley</a>,
+          2024-2026
+        </div>
       </Container>
     </MantineProvider>
   );

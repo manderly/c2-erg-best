@@ -12,12 +12,14 @@ interface IndividualCardIF {
   month: string;
   data: MonthDataIF;
   onClick?: () => void;
+  isSelected?: boolean;
 }
 
 const IndividualCardComponent: React.FC<IndividualCardIF> = ({
   month,
   data,
   onClick,
+  isSelected,
 }) => {
   const current = isCurrentMonthAndYear(month, String(data.year));
   const future = isFutureMonthAndYear(month, String(data.year));
@@ -42,7 +44,7 @@ const IndividualCardComponent: React.FC<IndividualCardIF> = ({
 
   return (
     <Card
-      className={`month-card ${current ? "current-month" : ""} ${future ? "month-card-dim" : ""}`}
+      className={`month-card ${current ? "current-month" : ""} ${future ? "month-card-dim" : ""} ${isSelected ? "selected-month-card" : ""}`}
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : undefined }}
     >

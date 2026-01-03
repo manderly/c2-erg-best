@@ -8,9 +8,14 @@ import { RootState } from "../../store/store.ts";
 interface MonthCardsIF {
   data: ErgDataByYear;
   onMonthClick?: (monthData: any) => void;
+  selectedMonth?: { name: string; year: number };
 }
 
-export const MonthCards: React.FC<MonthCardsIF> = ({ data, onMonthClick }) => {
+export const MonthCards: React.FC<MonthCardsIF> = ({
+  data,
+  onMonthClick,
+  selectedMonth,
+}) => {
   const ergDataState = useSelector((state: RootState) => state.ergData);
   const sorted = _.orderBy(data[ergDataState.viewingYear], "date");
   return (
@@ -21,6 +26,11 @@ export const MonthCards: React.FC<MonthCardsIF> = ({ data, onMonthClick }) => {
           month={key}
           data={value}
           onClick={() => onMonthClick && onMonthClick(value)}
+          isSelected={
+            selectedMonth &&
+            selectedMonth.name === value.name &&
+            selectedMonth.year === value.year
+          }
         />
       ))}
     </div>
