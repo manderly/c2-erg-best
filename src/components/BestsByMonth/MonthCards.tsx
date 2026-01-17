@@ -1,14 +1,14 @@
 import React from "react";
 import _ from "lodash";
 import IndividualCardComponent from "./IndividualCard.component.tsx";
-import { ErgDataByYear } from "../../types/types.ts";
+import { ErgDataByYear, MonthDataIF } from "../../types/types.ts";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store.ts";
 
 interface MonthCardsIF {
   data: ErgDataByYear;
-  onMonthClick?: (monthData: any) => void;
-  selectedMonth?: { name: string; year: number };
+  onMonthClick?: (monthData: MonthDataIF | null) => void;
+  selectedMonth?: { name: string; year: number } | null;
 }
 
 export const MonthCards: React.FC<MonthCardsIF> = ({

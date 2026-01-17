@@ -21,6 +21,7 @@ import {
   WorkDistanceSumsIF,
   AllTimeSumsDataIF,
   ErgDataIF,
+  MonthDataIF,
 } from "./types/types.ts";
 import { TrendsComponent } from "./components/TrendCharts/Trends.component.tsx";
 import { useDispatch, useSelector } from "react-redux";
@@ -61,7 +62,7 @@ function App() {
     years: [],
   });
 
-  const [selectedMonth, setSelectedMonth] = useState<any>(null);
+  const [selectedMonth, setSelectedMonth] = useState<MonthDataIF | null>(null);
 
   /* On page load, load my test data (for demo purposes) */
   useEffect(() => {

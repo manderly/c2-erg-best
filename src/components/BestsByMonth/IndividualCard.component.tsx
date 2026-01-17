@@ -12,7 +12,7 @@ interface IndividualCardIF {
   month: string;
   data: MonthDataIF;
   onClick?: () => void;
-  isSelected?: boolean;
+  isSelected?: boolean | null;
 }
 
 const IndividualCardComponent: React.FC<IndividualCardIF> = ({
